@@ -1,0 +1,117 @@
+{% extends 'emtct/base.html' %}
+{% load static %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+         <h3 class="theme-color">
+             <i class="zmdi zmdi-view-dashboard zmdi-hc-lg"></i>
+             <span>Overview<hr class="hr-header"/></span>
+         </h3>
+
+         <br/>
+
+            <div class="row">
+                <div class=" col-sm-1 col-md-1 col-lg-1 "></div>
+                <div class="col-sm-3 col-md-3 col-lg-3">
+                    <div class="text-center"><h1 class="availabledays"> {{ imports }} </h1>
+                        <div><h5>Imports</h5></div>
+                        <span>(Total Imports(month))</span>
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3 col-lg-3 requestedborder">
+                    <div class="text-center"><h1 class="approvedays"> {{ imports_updated }} /
+                        {{ imports }}</h1>
+                        <div><h5>Imports Updated</h5></div>
+                        <span>(No. of Imports Updated(month))</span>
+                    </div>
+                </div>
+                <div  class="col-sm-3 col-md-3 col-lg-3  ">
+                    <div class="text-center">
+                        <h1 class="requestdays"> {{ imports_pending_update }} /
+                            {{ imports}} </h1>
+                        <div><h5>Imports Pending Update</h5></div>
+                        <span>(No. of Imports Pending Update(month))</span>
+                    </div>
+                </div>
+                <div class="col-sm-1 col-md-1 col-lg-1"></div>
+            </div>
+            <br/>
+            <div class="container">
+                <div class="row">
+                    <div class=" col-sm-12 col-md-12 col-lg-12 ">
+                        <h4>Monthly Imports</h4>
+                        {% if imports > 0 %}
+                            <table class="table text-lg-left">
+                                <thead class="thead-light">
+                                <tr>
+
+                                    <th scope="col">File</th>
+                                    <th scope="col">Update Status</th>
+                                    <th scope="col">Imported On</th>
+                                </tr>
+                                </thead>
+                                {% for import in paginated_imports %}
+                                    <tbody class="text-lg-left">
+                                    <tr>
+                                        <td scope="row"><a style="color: #1CABE2 !important;"  class="employeelink"
+                                                           href="{{ import.export_file.url }}">
+                                            {{ import.export_file}}</a></td>
+                                        <td>
+                                            {% if import.sync_status == True  %}
+                                                <img src="/static/admin/img/icon-yes.svg" alt="Synced">
+                                            {% else %}
+                                                <img src="/static/admin/img/icon-no.svg" alt="Not Synced">
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ import.created_at }}</td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <br/>
+
+                            {% if paginated_imports.has_other_pages %}
+                             <nav aria-label="Page navigation example">
+                                  <ul class="pagination pagination justify-content-end">
+                                    {% if paginated_imports.has_previous %}
+                                      <li class="page-item">
+                                          <a class="page-link" href="?page={{ paginated_imports.previous_page_number }}">&laquo;
+                                          </a>
+                                      </li>
+                                    {% else %}
+                                      <li class="page-item disabled"><span class="page-link" >&laquo;</span></li>
+                                    {% endif %}
+                                    {% for i in paginated_imports.paginator.page_range %}
+                                      {% if paginated_imports.number == i %}
+                                        <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
+                                      {% else %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                                      {% endif %}
+                                    {% endfor %}
+                                    {% if paginated_imports.has_next %}
+                                      <li class="page-item">
+                                          <a class="page-link" href="?page={{ paginated_imports.next_page_number }}">
+                                              &raquo;
+                                          </a>
+                                      </li>
+                                    {% else %}
+                                      <li class="page-item disabled"><span class="page-link" >&raquo;</span></li>
+                                    {% endif %}
+                                  </ul>
+                             </nav>
+                            {% endif %}
+
+
+                        {% else %}
+                            <br/>
+                            <strong>Hello {{ request.user.get_short_name }}, you have no UgandaEMR EMTCT Data Export
+                                uploads this month </strong>
+                            To make an upload, click <a href="{% url 'uganda-emtct-import' %}">here</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+{% endblock %}
+

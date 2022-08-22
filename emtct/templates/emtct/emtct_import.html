@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+{% extends 'emtct/base.html' %}
+{% load static %}
+{% block title %}EMTCT Data Import{% endblock %}
+{% block content %}
+
+    <h3 class="theme-color"><i class="zmdi zmdi-file zmdi-hc-lg"> </i>
+        <span>EMTCT Data Import<hr class="hr-header"/></span></h3>
+    <br/>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-1"></div>
+            {% if not saved %}
+                <div class="col-sm-10">
+                    <form method = "POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="form-group row">
+                            <label for="id_export_file">UgandaEMR EMTCT Export File:</label>
+                            <input class="form-control" name="export_file" id="id_export_file" type="file">
+                        </div>
+                        <button type="submit" class="btn btn-success row">Upload</button> &nbsp;
+                        &nbsp; <button type="reset" class="btn btn-leave  btn-xm">Cancel</button>
+                    </form>
+                </div>
+
+            {% else  %}
+                <div class="col-sm-10">
+                    <strong>Your export has been uploaded with  {{ updated_contacts }}
+                        EMTCT mother(s) appointment dates updates.</strong>
+                </div>
+            {% endif %}
+            <div class="col-sm-1"></div>
+        </div>
+    </div>
+
+{% endblock %}
