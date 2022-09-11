@@ -1,0 +1,110 @@
+{% extends 'emtct/base.html' %}
+{% load static %}
+{% block title %}EMTCT Data Export{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+    <h3 class="theme-color"><i class="zmdi zmdi-file-text zmdi-hc-lg"> </i>
+        <span>Mother Registration<hr class="hr-header"/></span></h3>
+
+    <br/>
+    <div class="container">
+    <div class="row">
+        <div class="col-sm-1"></div>
+            <div class="col-sm-10">
+                <form method="post" action ="" novalidate>
+                    <!-- {% csrf_token %}
+                    <div class="form-group row">
+                        <label for="id_start_date">From</label>
+                        <input class="form-control" name="start_date" id="id_start_date" type="date">
+                    </div>
+                    <div class="form-group row">
+                        <label for="id_end_date">To</label>
+                        <input class="form-control" name="end_date" id="id_end_date" type="date">
+                    </div>
+                    <button type="submit" class="btn btn-success row">Download</button> &nbsp;
+                    &nbsp; <button type="reset" class="btn btn-leave  btn-xm">Cancel</button> -->
+                    {% csrf_token %}
+	                  {{form.as_p }}
+	                  <input type="submit" value="Submit">
+              </form>
+              <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+              <script>
+    
+                $(document).ready(function(){
+                  // count = 1
+                  $("#id_region").change(function(){
+            
+                    let reg_id = $("#id_region").val();
+                    if (reg_id ==0 || reg_id == "")
+                      return;
+                    let dropdown = $('#id_district');
+                    console.log(reg_id);
+                    dropdown.empty();
+                    // dropdown.append('<option selected="true" disabled>Please Select Region</option>');
+                    dropdown.append('<option selected="true" value="">Please Select District</option>');
+                    dropdown.prop('selectedIndex', 0);
+                    const url = 'districtjson/'+ reg_id;
+                    // Populate dropdown with list of 
+                    $.getJSON(url, function (data) {
+                      $.each(data,function(){
+                        $.each(this, function (key, entry) {
+                            dropdown.append($('<option></option>').attr('value', entry.id).text(entry.name));
+                            // console.log(entry)
+                        })
+                      } );
+                        
+                      });
+                    $("#id_district").change(function(){
+                        let district_id = $("#id_district").val();
+                        let subcountylist = $('#id_subcounty');
+                        console.log(district_id);
+                        subcountylist.empty();
+                        // dropdown.append('<option selected="true" disabled>Please Select Region</option>');
+                        // subcountylist.append('<option selected="true" value="">Please Select Subcounty</option>');
+                        // dropdown.prop('selectedIndex', 0);
+                        const suburl = 'subcountyjson/'+ district_id;
+                        // Populate dropdown with list of 
+                        $.getJSON(suburl, function (data) {
+                          $.each(data,function(){
+                            $.each(this, function (key, entry) {
+                                subcountylist.append($('<option></option>').attr('value', entry.id).text(entry.name));
+                                console.log(entry)
+                            })
+                          } );
+                            
+                          });
+                      });
+            
+                      $("#id_subcounty").change(function(){
+                        let subcounty_id = $("#id_subcounty").val();
+                        let parishlist = $('#id_parish');
+                        // console.log(district_id);
+                        // parishlist.empty();
+                        // dropdown.append('<option selected="true" disabled>Please Select Region</option>');
+                        // subcountylist.append('<option selected="true" value="">Please Select Subcounty</option>');
+                        // dropdown.prop('selectedIndex', 0);
+                        const parishurl = 'parishjson/'+ subcounty_id;
+                        // Populate dropdown with list of 
+                        $.getJSON(parishurl, function (data) {
+                          $.each(data,function(){
+                            $.each(this, function (key, entry) {
+                                parishlist.append($('<option></option>').attr('value', entry.id).text(entry.name));
+                                console.log(entry)
+                            })
+                          } );
+                            
+                          });
+                      });
+            
+            
+            
+            
+                  });
+                });
+              </script>
+            </div>
+        <div class="col-sm-1"></div>
+    </div>
+    </div>
+{% endblock %}

@@ -92,6 +92,21 @@
                 </div>
                 </a>
                 <br>
+                <!----- Link to Web REgistration------->
+                <a href="{% url 'mother_registration' %}" style="color: inherit;">
+                    <div class="thumbnail menu-thumbs">
+                        <!--<i class="zmdi zmdi-download zmdi-hc-lg"></i> -->
+                        <i class="zmdi zmdi-account-o zmdi-hc-lg"></i>
+                        <h4>Mother Registration</h4>
+                    </div>
+                    </a>
+                    <br>
+                 
+
+
+
+
+
             {% if request.user.is_staff == True %}
                 <a href="{% url 'users-list' %}" style="color: inherit;">
                 <div class="thumbnail menu-thumbs">

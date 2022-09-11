@@ -1,6 +1,7 @@
 # from django.conf.urls import url, include
 from django.urls import path, re_path
 import emtct.views as emtct_views
+# from .views import MotherRegistration, region_list, district_list, subcounty_list, parish_list
 from django.contrib.auth import views as auth_views
 # from django.contrib.auth.views import LoginView, LogoutView
 from django.conf import settings
@@ -31,6 +32,7 @@ urlpatterns = [
     path('help/', emtct_views.Help.as_view(), name='help'),
     path('overview/', emtct_views.Overview.as_view(), name='overview'),
     path('add-rapidpro/', emtct_views.create_rapidpro, name='create-rapidpro'),
+    path('mother_registration/', emtct_views.MotherRegistration.as_view(), name='mother_registration'), #mother_registration
     path('emtct-data-export/', emtct_views.generate_emtct_export, name='generate-emtct-export'),
     path('emtct-data-import/', emtct_views.import_ugandaemr_emtct_export, name='uganda-emtct-import'),
     path('password-change/',
@@ -52,6 +54,12 @@ urlpatterns = [
     path('reset/done/',
         PasswordResetCompleteView.as_view(template_name='emtct/password_reset_complete.html'),
         name='password_reset_complete'),
+    path('regionjson/', emtct_views.region_list, name= 'region_list'),
+    path('mother_registration/districtjson/<int:id>', emtct_views.district_list, name= 'district_list'),
+    path('mother_registration/subcountyjson/<int:id>', emtct_views.subcounty_list, name= 'subcounty_list'),
+    path('mother_registration/parishjson/<int:id>', emtct_views.parish_list, name= 'parish_list'),
+
+        
 
 
     ]

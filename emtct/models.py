@@ -412,3 +412,19 @@ class Message(models.Model):
         return cls.objects.filter(follow_up_date__range=(start_date, end_date),
                                     text__icontains=emtct_appointment_reminder_message_start,
                                   contact__health_facility__icontains=health_facility).all()
+
+#================LOCATION======================================
+class FcappOrgunits(models.Model):
+    uid = models.CharField(max_length=11)
+    name = models.CharField(max_length=230)
+    code = models.CharField(max_length=50)
+    shortname = models.CharField(max_length=50, blank=True, null=True)
+    parentid = models.BigIntegerField(blank=True, null=True)
+    path = models.CharField(max_length=255, blank=True, null=True)
+    hierarchylevel = models.IntegerField(blank=True, null=True)
+    created = models.DateTimeField()
+    updated = models.DateTimeField()
+
+    class Meta:
+        # managed = False
+        db_table = 'fcapp_orgunits'

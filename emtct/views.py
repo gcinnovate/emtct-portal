@@ -18,6 +18,15 @@ import calendar
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+#================================================================================
+from .forms import MotherForm
+from .models import FcappOrgunits
+from django.urls import reverse_lazy, reverse
+from django.http import JsonResponse
+#=================================================================================
+
+
+
 
 
 date = datetime.date.today()
@@ -138,6 +147,69 @@ def generate_emtct_export(request):
             form = EmtctExportForm()
     return  render(request, 'emtct/emtct_export.html', locals())
 
+from django.views.generic.edit import FormView
+# @two_factor_auth
+class MotherRegistration(FormView):
+    template_name = 'emtct/mother_registration.html'
+    form_class = MotherForm
+    
+
+    def get_initial(self):
+         # call super if needed
+         return {'sex': 'Female'}
+    success_url = '/thanks/'
+    success_url = reverse_lazy('mother_registration')
+
+    def form_valid(self, form):
+        dict1=form.cleaned_data
+        apikey = dict1['apikey']
+
+        contact_params={
+            'name': dict1['name'],
+            'language': dict1['language'],
+            'urns': ['tel:+' + dict1['phonenumber']],
+            'groups': ['Active Receivers', 'Type = Child', 'Type = VHT', 'Type = Nurse', 'Type = ReproductiveAge', 'Type =      Midwife', 'Reproductive Age', 'Registered VHTs', 'Update Contact With Incorrect District', 'Incorrect District And Village', 'Update Reproductive Registrations'],
+            'fields': {'sex': dict1['sex'], 'lmp': str(dict1['lmp']), 'village': None,  'sub_county': None, 'district': None, 'parish': None}
+        }
+        print(dict1)
+        return HttpResponseRedirect(reverse_lazy('mother_registration'))
+        # return  render(request, 'emtct/mother_registration.html', locals())
+
+
+@login_required
+def region_list(request): # Function included here for testing purposes - Not required 
+    # region = FcappOrgunits.objects.filter(hierarchylevel = level['region']).values('id','name') 
+    region = FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')
+    
+    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in region]})
+    
+    # region = FcappOrgunits.objects.raw(f'''
+    #      select id, name from fcapp_orgunits where hierarchylevel = {level['region']}
+    #  ''')
+    # return JsonResponse({'data': [{ 'id' : p.id, 'name': p.name} for p in region]})
+
+
+
+@login_required
+def district_list(request, id):
+    district = FcappOrgunits.objects.filter(parentid = id).values('id','name')
+    
+    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in district]})
+
+
+@login_required
+def subcounty_list(request, id):
+    subcounty = FcappOrgunits.objects.filter(parentid = id).values('id','name')
+    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in subcounty]})
+
+
+@login_required
+def parish_list(request, id):
+    parish = FcappOrgunits.objects.filter(parentid = id).values('id','name')
+    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in parish]})
+
+
+#======================================================================================
 
 @two_factor_auth
 def import_ugandaemr_emtct_export(request):
