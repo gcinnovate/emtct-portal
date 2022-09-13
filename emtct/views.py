@@ -163,15 +163,45 @@ class MotherRegistration(FormView):
     def form_valid(self, form):
         dict1=form.cleaned_data
         apikey = dict1['apikey']
+        server_url = dict1['server_url']
+
+        district= FcappOrgunits.objects.filter(id = int(dict1['district'])).values('name').first()
+        subcounty = FcappOrgunits.objects.filter(id = int(dict1['subcounty'])).values('name').first()
+        facility= FcappOrgunits.objects.filter(id = int(dict1['facility'])).values('name').first()
+        
+
 
         contact_params={
             'name': dict1['name'],
             'language': dict1['language'],
             'urns': ['tel:+' + dict1['phonenumber']],
             'groups': ['Active Receivers', 'Type = Child', 'Type = VHT', 'Type = Nurse', 'Type = ReproductiveAge', 'Type =      Midwife', 'Reproductive Age', 'Registered VHTs', 'Update Contact With Incorrect District', 'Incorrect District And Village', 'Update Reproductive Registrations'],
-            'fields': {'sex': dict1['sex'], 'lmp': str(dict1['lmp']), 'village': None,  'sub_county': None, 'district': None, 'parish': None}
+            'fields': {'sex': dict1['sex'], 'lmp': str(dict1['lmp']), 'village': dict1['village'],  'sub_county': subcounty['name'], 'district': district['name'], 'parish': None, 'health_facility': facility['name'] }
         }
-        print(dict1)
+        # print(dict1)
+        # print(contact_params)
+        print("========================== API Mother Registration ==============================")
+        
+        destination_token = apikey
+        from temba_client.exceptions import TembaException, TembaConnectionError, TembaHttpError, TembaNoSuchObjectError, TembaBadRequestError
+        from requests.exceptions import HTTPError
+        from temba_client.v2 import TembaClient
+        destination_client = TembaClient(server_url, destination_token)
+        # import logging
+
+        # import sys
+        try:
+            i = destination_client.create_contact(name=contact_params['name'], language=contact_params['language'], urns=contact_params['urns'], fields=contact_params['fields'], groups=contact_params['groups'])
+            print(i.uuid," Sucesss........................................")
+            messages.success(request, 'Form submission successful')
+            
+        
+        except:
+            
+            
+            print("Error..............................................." )
+                
+                
         return HttpResponseRedirect(reverse_lazy('mother_registration'))
         # return  render(request, 'emtct/mother_registration.html', locals())
 

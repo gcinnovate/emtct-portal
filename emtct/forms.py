@@ -1,4 +1,6 @@
 from django import forms
+from django.forms import ChoiceField
+
 from emtct.models import *
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit
@@ -66,6 +68,12 @@ LANGUAGE_CHOICES =(
     
 )
 
+FAVORITE_COLORS_CHOICES = [
+    ('blue', 'Blue'),
+    ('green', 'Green'),
+    ('black', 'Black'),
+]
+
 LACTATING_CHOICES=[('pregnant','Pregnant'),
          ('lactating','Lactating')]
 
@@ -73,23 +81,33 @@ LACTATING_CHOICES=[('pregnant','Pregnant'),
 # class DateInput(forms.DateInput):
 #     input_type = 'date'
 
+class ChoiceFieldNoValidation(ChoiceField): #custom ChoiceField and override to skip validation
+    def validate(self, value):
+        pass
 
-class MotherForm(forms.Form):   
+class MotherForm(forms.Form):  
+    server_url = forms.CharField(label="Server Address",widget = forms.TextInput(attrs={'placeholder':'Please Enter Your Server Address'}))
     apikey = forms.CharField(label="Your API Key",widget = forms.TextInput(attrs={'placeholder':'Please Enter Your API key'}))
     name = forms.CharField(label="Mother's name",widget = forms.TextInput(attrs={'placeholder':'Name of Mother'}))
     sex = forms.CharField(label="Sex (Mothers only)", widget = forms.TextInput(attrs={'readonly':'readonly'}))
     # sex = forms.CharField(label="Sex", widget = forms.TextInput(attrs={'readonly':'readonly', 'disabled':'disabled'}))
     phonenumber = forms.CharField(label="Contact Number (start with 256)", widget = forms.TextInput(attrs={'placeholder':'256XXXXXXXXX'}))
     # region = forms.ModelChoiceField(queryset=FcappOrgunits.objects.filter(hierarchylevel = 2).values('name'))
-    region = forms.ChoiceField(choices= [('', 'Please Select Region')] + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
+    region = forms.ChoiceField(required=False, choices= [('', 'Please Select Region')] + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
     # region = forms.ChoiceField(choices= [('', 'Please Select Region')]) 
-    district = forms.ChoiceField(choices= [('', 'Please Select District')])# + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
-    subcounty = forms.ChoiceField(choices= [('', 'Please Select Subcounty')])# + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
-    parish = forms.ChoiceField(choices= [('', 'Please Select Parish')])# + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
+    district = ChoiceFieldNoValidation(choices= [('', 'Please Select District')])# + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
+    subcounty = ChoiceFieldNoValidation(required=False, choices= [('', 'Please Select Subcounty')])# + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
+    facility = ChoiceFieldNoValidation(label="Health Facility",required=False, choices= [('', 'Please Select Facility')])# + [(x['id'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')])
     village = forms.CharField(widget = forms.TextInput(attrs={'placeholder':'Village of Mother'}))
     # region = forms.ChoiceField(choices= [(x['name'],x['name']) for x in FcappOrgunits.objects.filter(hierarchylevel = 2).values('name')])
     language = forms.ChoiceField(choices = LANGUAGE_CHOICES)
-    like = forms.ChoiceField(label="Mother Status", choices=LACTATING_CHOICES, widget=forms.RadioSelect)
+    # like = forms.ChoiceField(label="Mother Status", choices=LACTATING_CHOICES, widget=forms.RadioSelect)
+    favorite_colors = forms.MultipleChoiceField(
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=FAVORITE_COLORS_CHOICES,
+    )
+
     # forms.DateField(widget=DateInput)
     # lmp = forms.DateField(label="Last Menstrual Period", widget = forms.SelectDateWidget)
     # lmp = forms.DateField(label="Last Menstrual Period", widget = DateInput)

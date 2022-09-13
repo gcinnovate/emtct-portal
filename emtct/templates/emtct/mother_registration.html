@@ -78,7 +78,7 @@
             
                       $("#id_subcounty").change(function(){
                         let subcounty_id = $("#id_subcounty").val();
-                        let parishlist = $('#id_parish');
+                        let facilitylist = $('#id_facility');
                         // console.log(district_id);
                         // parishlist.empty();
                         // dropdown.append('<option selected="true" disabled>Please Select Region</option>');
@@ -89,7 +89,7 @@
                         $.getJSON(parishurl, function (data) {
                           $.each(data,function(){
                             $.each(this, function (key, entry) {
-                                parishlist.append($('<option></option>').attr('value', entry.id).text(entry.name));
+                                facilitylist.append($('<option></option>').attr('value', entry.id).text(entry.name));
                                 console.log(entry)
                             })
                           } );
@@ -97,10 +97,11 @@
                           });
                       });
             
-            
+                  
             
             
                   });
+
                 });
               </script>
             </div>
