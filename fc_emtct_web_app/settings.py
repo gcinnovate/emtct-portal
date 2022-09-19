@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'import_export',
     'timeline_logger',
     'django_celery_beat',
+    'phonenumber_field',
 
     # custom apps
     'emtct'

@@ -11,27 +11,66 @@
     <div class="container">
     <div class="row">
         <div class="col-sm-1"></div>
-            <div class="col-sm-10">
+            <div class="col-sm-10"><h4 class="theme-color">Welcome to FamilyConnect EMTCT</h4>
+              {% if messages %}
+              {% for message in messages %}
+                {% if message.tags == 'success' %}
+                  <div class="alert alert-success" role="alert">
+                      {{message}}
+                  </div>
+                {% endif %}
+                {% if message.tags == 'error' %}
+                <div class="alert alert-danger" role="alert">
+                      {{message}}
+                  </div>
+                {% endif %}
+
+                
+              {% endfor %}
+              {% endif %}
                 <form method="post" action ="" novalidate>
-                    <!-- {% csrf_token %}
-                    <div class="form-group row">
-                        <label for="id_start_date">From</label>
-                        <input class="form-control" name="start_date" id="id_start_date" type="date">
-                    </div>
-                    <div class="form-group row">
-                        <label for="id_end_date">To</label>
-                        <input class="form-control" name="end_date" id="id_end_date" type="date">
-                    </div>
-                    <button type="submit" class="btn btn-success row">Download</button> &nbsp;
-                    &nbsp; <button type="reset" class="btn btn-leave  btn-xm">Cancel</button> -->
-                    {% csrf_token %}
-	                  {{form.as_p }}
-	                  <input type="submit" value="Submit">
+                                      
+
+                  {% csrf_token %}
+                  {{ form|crispy }}
+                
+                  <button type="submit" class="btn btn-success">Register</button> 
+                    <button type="reset"  class="btn btn-danger btn btn-leave ">Cancel</button>
+                    <!-- btn-xm -->
+
               </form>
+
               <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
               <script>
     
                 $(document).ready(function(){
+                  
+                  $("#div_id_number_of_weeks").hide();
+                  console.log("between")
+                  $("#div_id_age_of_baby").hide();
+                  
+                  // // $("#show").click(function(){
+                  // //       $("p").show();
+                  // //     });
+
+                  $('#id_mothers_condition').change(function(){
+                    if ($('#id_mothers_condition').val() === "pregnant"){
+                      $("#div_id_age_of_baby").hide();
+
+                      $("#div_id_number_of_weeks").show();
+                    } else { 
+                      $("#div_id_number_of_weeks").hide();
+
+
+                      $("#div_id_age_of_baby").show();
+                  }
+
+
+                  });
+
+
+
+
                   // count = 1
                   $("#id_region").change(function(){
             
@@ -57,6 +96,8 @@
                       });
                     $("#id_district").change(function(){
                         let district_id = $("#id_district").val();
+                        if (district_id ==0 || district_id == "")
+                            return;
                         let subcountylist = $('#id_subcounty');
                         console.log(district_id);
                         subcountylist.empty();
@@ -78,6 +119,8 @@
             
                       $("#id_subcounty").change(function(){
                         let subcounty_id = $("#id_subcounty").val();
+                        if (subcounty_id ==0 || subcounty_id == "")
+                            return;
                         let facilitylist = $('#id_facility');
                         // console.log(district_id);
                         // parishlist.empty();
