@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 #SECRET_KEY = config('SECRET_KEY')
 
-SECRET_KEY = 'ts5+hxu@&q-*y_h5$u_oexw!+vgb6uy_vyi+feeq%smuf*@h84'
+SECRET_KEY =  # insert key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = config('DEBUG', cast=bool)
@@ -32,16 +32,19 @@ DEBUG = True
 if DEBUG is False:
     SECURE_HSTS_SECONDS = 60
 
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', cast=bool, default=True)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config(
+        'DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', cast=bool, default=True)
 
-    SECURE_CONTENT_TYPE_NOSNIFF = config('DJANGO_SECURE_CONTENT_TYPE_NOSNIFF', cast=bool, default=True)
+    SECURE_CONTENT_TYPE_NOSNIFF = config(
+        'DJANGO_SECURE_CONTENT_TYPE_NOSNIFF', cast=bool, default=True)
 
     SECURE_BROWSER_XSS_FILTER = True
 
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
 
-    SECURE_SSL_REDIRECT = config('DJANGO_SECURE_SSL_REDIRECT', cast=bool, default=True)
+    SECURE_SSL_REDIRECT = config(
+        'DJANGO_SECURE_SSL_REDIRECT', cast=bool, default=True)
     CSRF_COOKIE_SECURE = True
     CSRF_COOKIE_HTTPONLY = True
 
@@ -113,7 +116,7 @@ DATABASES = {
         'NAME': 'emtct_prod',
         'USER': 'postgres',
         'PASSWORD': 'emtct_prod',
-	'PORT': '5432',
+        'PORT': '5432',
         'HOST': 'localhost',
     }
 }
@@ -172,7 +175,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 FILE_UPLOAD_HANDLERS = ("django_excel.ExcelMemoryFileUploadHandler",
-                    "django_excel.TemporaryExcelFileUploadHandler")
+                        "django_excel.TemporaryExcelFileUploadHandler")
 
 
 #  For Gmail or Google Apps
@@ -183,7 +186,7 @@ FILE_UPLOAD_HANDLERS = ("django_excel.ExcelMemoryFileUploadHandler",
 # EMAIL_PORT = config('EMAIL_PORT', cast=int)
 
 
-ADMIN_SITE_HEADER ="FamilyConnect EMTCT"
+ADMIN_SITE_HEADER = "FamilyConnect EMTCT"
 ADMIN_SITE_INDEX = "FamilyConnect EMTCT"
 
 CELERY_BROKER_URL = 'redis://172.27.1.44:6379'
