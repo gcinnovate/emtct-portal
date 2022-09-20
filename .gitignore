@@ -7,3 +7,4 @@ README.md
 env.sample
 requirementsbckp.txt
 location.py
+*.pyc

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from django.views.generic.edit import FormView
+from distutils import dist
+import uuid
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
@@ -18,23 +21,23 @@ import calendar
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-#================================================================================
+# ================================================================================
 from .forms import MotherForm
-from .models import FcappOrgunits
+from .models import FcappOrgunits, SubmittedData
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse
-#=================================================================================
-
-
-
+# =================================================================================
 
 
 date = datetime.date.today()
 start_datetime_of_current_month = datetime.datetime(date.year, date.month, 1)
-end_datetime_of_current_month =  datetime.datetime(date.year, date.month, calendar.mdays[date.month])
+end_datetime_of_current_month = datetime.datetime(
+    date.year, date.month, calendar.mdays[date.month])
+
 
 def generate_code():
     return str(random.randrange(100000, 999999))
+
 
 @login_required()
 def submit_verification(request):
@@ -47,7 +50,8 @@ def submit_verification(request):
                 request.session['verified_user'] = True
                 return HttpResponseRedirect('/overview')
             else:
-                messages.warning(request, 'Please enter the verification code sent to your registered phone number.')
+                messages.warning(
+                    request, 'Please enter the verification code sent to your registered phone number.')
 
         else:
             print(form.errors)
@@ -73,34 +77,34 @@ def send_verification_code(request):
 
 
 class Overview(TwoFactorMixin, TemplateView):
-        template_name = "emtct/overview.html"
+    template_name = "emtct/overview.html"
 
-        def render_to_response(self, context, **response_kwargs):
-            imports = UgandaEMRExport.get_count_exports(start_datetime_of_current_month, end_datetime_of_current_month,
-                                                  self.request.user)
-            imports_updated = UgandaEMRExport.get_count_exports_updated(start_datetime_of_current_month,
-                                                                        end_datetime_of_current_month, self.request.user)
-            imports_pending_update = UgandaEMRExport.get_count_exports_pending_update(start_datetime_of_current_month,
-                                                                                      end_datetime_of_current_month,
-                                                                                      self.request.user)
-            monthly_imports = UgandaEMRExport.get_exports(start_datetime_of_current_month, end_datetime_of_current_month,
-                                                  self.request.user)
+    def render_to_response(self, context, **response_kwargs):
+        imports = UgandaEMRExport.get_count_exports(start_datetime_of_current_month, end_datetime_of_current_month,
+                                                    self.request.user)
+        imports_updated = UgandaEMRExport.get_count_exports_updated(start_datetime_of_current_month,
+                                                                    end_datetime_of_current_month, self.request.user)
+        imports_pending_update = UgandaEMRExport.get_count_exports_pending_update(start_datetime_of_current_month,
+                                                                                  end_datetime_of_current_month,
+                                                                                  self.request.user)
+        monthly_imports = UgandaEMRExport.get_exports(start_datetime_of_current_month, end_datetime_of_current_month,
+                                                      self.request.user)
 
-            page = self.request.GET.get('page', 1)
+        page = self.request.GET.get('page', 1)
 
-            paginator = Paginator(monthly_imports, 4)
-            try:
-                paginated_imports = paginator.page(page)
-            except PageNotAnInteger:
-                paginated_imports = paginator.page(1)
-            except EmptyPage:
-                paginated_imports = paginator.page(paginator.num_pages)
+        paginator = Paginator(monthly_imports, 4)
+        try:
+            paginated_imports = paginator.page(page)
+        except PageNotAnInteger:
+            paginated_imports = paginator.page(1)
+        except EmptyPage:
+            paginated_imports = paginator.page(paginator.num_pages)
 
-            context = {'imports': imports, 'imports_updated':imports_updated,
-                       'imports_pending_update':imports_pending_update, 'monthly_imports':monthly_imports,
-                       'paginated_imports': paginated_imports}
-            return self.response_class(request=self.request, template=self.get_template_names(), context=context,
-                               using=self.template_engine)
+        context = {'imports': imports, 'imports_updated': imports_updated,
+                   'imports_pending_update': imports_pending_update, 'monthly_imports': monthly_imports,
+                   'paginated_imports': paginated_imports}
+        return self.response_class(request=self.request, template=self.get_template_names(), context=context,
+                                   using=self.template_engine)
 
 
 class Help(TwoFactorMixin, TemplateView):
@@ -117,7 +121,7 @@ def create_rapidpro(request):
         else:
             print(form.errors)
 
-    return render(request, 'emtct/rapidpro_form.html', {'form': form })
+    return render(request, 'emtct/rapidpro_form.html', {'form': form})
 
 
 @two_factor_auth
@@ -134,7 +138,7 @@ def generate_emtct_export(request):
             end_date = form.cleaned_data.get('end_date')
             emtct_export_report = Message.get_emtct_export(start_date=start_date, end_date=end_date,
                                                            health_facility=emtct_user.health_facility.name)
-            writer =csv.writer(response)
+            writer = csv.writer(response)
             writer.writerow(['Message ID', 'Phone', 'Follow up date', 'Type of Care', 'Outcome', 'Follow up type',
                              'ART number', 'OpenMRS ID', 'EID number', 'Health facility'])
             for row in emtct_export_report:
@@ -145,43 +149,74 @@ def generate_emtct_export(request):
             return response
         else:
             form = EmtctExportForm()
-    return  render(request, 'emtct/emtct_export.html', locals())
+    return render(request, 'emtct/emtct_export.html', locals())
 
-from django.views.generic.edit import FormView
+
+# from django.contrib.messages.views import SuccessMessageMixin
 # @two_factor_auth
+
+
 class MotherRegistration(FormView):
     template_name = 'emtct/mother_registration.html'
     form_class = MotherForm
-    
+    # success_message = "Mother has been registered"
 
     def get_initial(self):
-         # call super if needed
-         return {'sex': 'Female'}
-    success_url = '/thanks/'
-    success_url = reverse_lazy('mother_registration')
+        # call super if needed
+        return {'sex': 'F'}
+    # success_url = '/thanks/'
+    # success_url = reverse_lazy('mother_registration')
 
     def form_valid(self, form):
-        dict1=form.cleaned_data
-        apikey = dict1['apikey']
-        server_url = dict1['server_url']
+        dict1 = form.cleaned_data
+        print(dict1)
 
-        district= FcappOrgunits.objects.filter(id = int(dict1['district'])).values('name').first()
-        subcounty = FcappOrgunits.objects.filter(id = int(dict1['subcounty'])).values('name').first()
-        facility= FcappOrgunits.objects.filter(id = int(dict1['facility'])).values('name').first()
-        
+        apikey = apikey  # provide api key
+        server_url = server_url  # provide server url
+        district = dict1['district']
+        subcounty = dict1['subcounty']
+        facility = dict1['facility']
+        if dict1['district']:
+            district = FcappOrgunits.objects.filter(
+                id=int(dict1['district'])).values('name').first()
+            district = district['name']
+        if dict1['subcounty']:
+            subcounty = FcappOrgunits.objects.filter(
+                id=int(dict1['subcounty'])).values('name').first()
+            subcounty = subcounty['name']
+        if dict1['facility']:
+            facility = FcappOrgunits.objects.filter(
+                id=int(dict1['facility'])).values('name').first()
+            facility = facility['name']
 
-
-        contact_params={
+        # print(district," == ", subcounty," === ", facility )
+        # print("<------------------------------------------------>")
+        contact_params = {
             'name': dict1['name'],
             'language': dict1['language'],
-            'urns': ['tel:+' + dict1['phonenumber']],
-            'groups': ['Active Receivers', 'Type = Child', 'Type = VHT', 'Type = Nurse', 'Type = ReproductiveAge', 'Type =      Midwife', 'Reproductive Age', 'Registered VHTs', 'Update Contact With Incorrect District', 'Incorrect District And Village', 'Update Reproductive Registrations'],
-            'fields': {'sex': dict1['sex'], 'lmp': str(dict1['lmp']), 'village': dict1['village'],  'sub_county': subcounty['name'], 'district': district['name'], 'parish': None, 'health_facility': facility['name'] }
-        }
-        # print(dict1)
-        # print(contact_params)
+            'urns': ['tel:' + str(dict1['phonenumber'])],
+            'groups': ['Active Receivers', 'All FC-EMTCT'],
+            'fields': {'sex': dict1['sex'],  'art_number': dict1['art_number'],  'sub_county': subcounty, 'district': district, 'health_facility': facility, 'messages_to_receive': None, 'trusted_person': None, 'registered_by': 'EMTCT Portal'}
+        }  # 'lmp': str(dict1['lmp']),
+        # print("IP address: ",dict1['server_url'],"     API KEY ", dict1['apikey'])
+        print("")
+        print("")
+        print("")
+        print(dict1)
+        print("......................")
+        print("......................")
+        print("......................")
+        print(contact_params)
+        print("......................")
+        print("......................")
+        # print("......................Storing in DB........................................")
+        # submitteddata = SubmittedData.objects.create(contact_unit=contact_params)
+        # submitteddata.save()
+        # print("......................")
+        # print("......................")
+        # print("......................Saved in DB.............................")
         print("========================== API Mother Registration ==============================")
-        
+
         destination_token = apikey
         from temba_client.exceptions import TembaException, TembaConnectionError, TembaHttpError, TembaNoSuchObjectError, TembaBadRequestError
         from requests.exceptions import HTTPError
@@ -191,55 +226,84 @@ class MotherRegistration(FormView):
 
         # import sys
         try:
-            i = destination_client.create_contact(name=contact_params['name'], language=contact_params['language'], urns=contact_params['urns'], fields=contact_params['fields'], groups=contact_params['groups'])
-            print(i.uuid," Sucesss........................................")
-            messages.success(request, 'Form submission successful')
-            
-        
-        except:
-            
-            
-            print("Error..............................................." )
-                
-                
+
+            resp = destination_client.create_contact(name=contact_params['name'], language=contact_params['language'], urns=contact_params[
+                                                     'urns'], fields=contact_params['fields'], groups=contact_params['groups'])  # .iterfetches(retry_on_rate_exceed=True)
+            print(resp.uuid, " Sucesss........................................")
+            submitteddata = SubmittedData.objects.create(
+                uuid=resp.uuid, contact_unit=contact_params)
+            submitteddata.save()
+            messages.success(
+                self.request, 'Mother has been successfully registered')
+        except HTTPError as e:
+            print("HTTPError ..................", str(e))
+            messages.error(
+                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+
+        except TembaHttpError as e:
+            print("TembaHTTPError ..................", str(e))
+            messages.error(
+                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+        except TembaConnectionError as e:
+            print("Temab Connection Error....................... ",
+                  str(e), " ..................")
+            messages.error(
+                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+
+        except ConnectionResetError as e:
+            print("Connect Reset Error....................... ",
+                  str(e), " ..................")
+            messages.error(
+                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+
+        except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
+
+            if "URN belongs to another contact" in str(ex):
+                messages.error(self.request, 'The contact ' +
+                               contact_params['urns'][0] + ' already added')
+                print("Temba Bad Error....................... ",
+                      str(ex), " ..................")
+                # print("The contact  ", contact.urns, " will be reviewed later")
+                print("The contact  ",
+                      contact_params['urns'][0], " is already added")
+
         return HttpResponseRedirect(reverse_lazy('mother_registration'))
-        # return  render(request, 'emtct/mother_registration.html', locals())
 
 
 @login_required
-def region_list(request): # Function included here for testing purposes - Not required 
-    # region = FcappOrgunits.objects.filter(hierarchylevel = level['region']).values('id','name') 
-    region = FcappOrgunits.objects.filter(hierarchylevel = 2).values('id','name')
-    
-    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in region]})
-    
+def region_list(request):  # Function included here for testing purposes - Not required
+    # region = FcappOrgunits.objects.filter(hierarchylevel = level['region']).values('id','name')
+    region = FcappOrgunits.objects.filter(
+        hierarchylevel=2).values('id', 'name')
+
+    return JsonResponse({'data': [{'id': p['id'], 'name': p['name']} for p in region]})
+
     # region = FcappOrgunits.objects.raw(f'''
     #      select id, name from fcapp_orgunits where hierarchylevel = {level['region']}
     #  ''')
     # return JsonResponse({'data': [{ 'id' : p.id, 'name': p.name} for p in region]})
 
 
-
 @login_required
 def district_list(request, id):
-    district = FcappOrgunits.objects.filter(parentid = id).values('id','name')
-    
-    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in district]})
+    district = FcappOrgunits.objects.filter(parentid=id).values('id', 'name')
+
+    return JsonResponse({'data': [{'id': p['id'], 'name': p['name']} for p in district]})
 
 
 @login_required
 def subcounty_list(request, id):
-    subcounty = FcappOrgunits.objects.filter(parentid = id).values('id','name')
-    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in subcounty]})
+    subcounty = FcappOrgunits.objects.filter(parentid=id).values('id', 'name')
+    return JsonResponse({'data': [{'id': p['id'], 'name': p['name']} for p in subcounty]})
 
 
 @login_required
 def parish_list(request, id):
-    parish = FcappOrgunits.objects.filter(parentid = id).values('id','name')
-    return JsonResponse({'data': [{ 'id' : p['id'], 'name': p['name']} for p in parish]})
+    parish = FcappOrgunits.objects.filter(parentid=id).values('id', 'name')
+    return JsonResponse({'data': [{'id': p['id'], 'name': p['name']} for p in parish]})
 
 
-#======================================================================================
+# ======================================================================================
 
 @two_factor_auth
 def import_ugandaemr_emtct_export(request):
@@ -252,7 +316,7 @@ def import_ugandaemr_emtct_export(request):
             instance.save()
             saved = True
             export = instance.export_file
-            ## Update contacts in Rapidpro
+            # Update contacts in Rapidpro
             updated_contacts = UgandaEMRExport.sync_data(export=export)
             log_activity(instance, instance.uploaded_by)
     else:
@@ -279,7 +343,7 @@ def register_user(request):
                 message = render_to_string('emtct/email_user_credentials.html', {
                     'user': user,
                     'email_password': email_password,
-                    'domain': current_site.domain })
+                    'domain': current_site.domain})
                 to_email = user.email
                 email = EmailMessage(
                     mail_subject, message, to=[to_email]
@@ -316,10 +380,10 @@ class UserList(TwoFactorMixin, ListView):
         return self.model.objects.filter(created_by=self.request.user)
 
 
-
 class UserUpdate(TwoFactorMixin, UpdateView):
     model = User
-    fields = ['first_name', 'last_name', 'email', 'user_role', 'health_facility', 'sms_auth']
+    fields = ['first_name', 'last_name', 'email',
+              'user_role', 'health_facility', 'sms_auth']
     template_name = 'emtct/user_update.html'
     success_url = '/users'
 
@@ -327,9 +391,3 @@ class UserUpdate(TwoFactorMixin, UpdateView):
         form.instance.created_by = self.request.user
         form.instance.save()
         return super(UserUpdate, self).form_valid(form)
-
-
-
-
-
-

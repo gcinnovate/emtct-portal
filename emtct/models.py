@@ -426,5 +426,11 @@ class FcappOrgunits(models.Model):
     updated = models.DateTimeField()
 
     class Meta:
-        # managed = False
+        managed = False
         db_table = 'fcapp_orgunits'
+
+class SubmittedData(models.Model):
+    uuid = models.CharField(max_length=45)
+    contact_unit =models.JSONField()
+    created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=False, auto_now_add=True)
