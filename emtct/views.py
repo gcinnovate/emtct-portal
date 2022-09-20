@@ -26,6 +26,9 @@ from .forms import MotherForm
 from .models import FcappOrgunits, SubmittedData
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse
+from environs import Env
+env = Env()
+env.read_env()
 # =================================================================================
 
 
@@ -171,8 +174,8 @@ class MotherRegistration(FormView):
         dict1 = form.cleaned_data
         print(dict1)
 
-        apikey = apikey  # provide api key
-        server_url = server_url  # provide server url
+        apikey = env.str("API_KEY")   # provide api key
+        server_url = env.str("SERVER_URL")  # provide server url
         district = dict1['district']
         subcounty = dict1['subcounty']
         facility = dict1['facility']

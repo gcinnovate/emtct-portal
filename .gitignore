@@ -8,3 +8,6 @@ env.sample
 requirementsbckp.txt
 location.py
 *.pyc
+__pycache__
+db.sqlite3
+.env
