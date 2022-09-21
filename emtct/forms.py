@@ -118,13 +118,14 @@ class MotherForm(forms.Form):
         attrs={'placeholder': 'Number of Months'}))
     message_to_receive = forms.ChoiceField(
         label="What content would like to receive?", choices=MESSAGE_TO_RECEIVE)
-    # phonenumber = forms.CharField(label="Mother's Phone Number (start with 256)", widget = forms.TextInput(attrs={'placeholder':'256XXXXXXXXX'}))
-    phonenumber = PhoneNumberField(region='UG', label="Mother's Contact (start with +256)",
-                                   widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
-    trusted_person = PhoneNumberField(region='UG', required=False, label="Trusted Person Phone Number (start with +256)",
-                                      widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
+    phonenumber = forms.CharField(label="Mother's Phone Number (start with 256)",
+                                  widget=forms.TextInput(attrs={'placeholder': '256XXXXXXXXX'}))
+    # phonenumber = PhoneNumberField(region='UG', label="Mother's Contact (start with +256)",
+    #    widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
+    # trusted_person = PhoneNumberField(region='UG', required=False, label="Trusted Person Phone Number (start with +256)",
+    #   widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
     language = forms.ChoiceField(choices=LANGUAGE_CHOICES)
-    art_number = forms.CharField(label="What ia Patient's ART number", widget=forms.TextInput(
+    art_number = forms.CharField(label="What is Patient's ART number", widget=forms.TextInput(
         attrs={'placeholder': 'ART number'}))
 
     # sex = forms.CharField(label="Sex", widget = forms.TextInput(attrs={'readonly':'readonly', 'disabled':'disabled'}))
