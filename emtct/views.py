@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import pyexcel
+import os
 from django.views.generic.edit import FormView
 from distutils import dist
 import uuid
@@ -26,10 +28,17 @@ from .forms import MotherForm
 from .models import FcappOrgunits, SubmittedData
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse
+from temba_client.exceptions import TembaException, TembaConnectionError, TembaHttpError, TembaNoSuchObjectError, TembaBadRequestError
+from requests.exceptions import HTTPError
+from temba_client.v2 import TembaClient
 from environs import Env
 env = Env()
 env.read_env()
-# =================================================================================
+# ================SERVER ADDRESS AND API KEY=================================================================
+apikey = env.str("API_KEY")
+server_url = env.str("SERVER_URL")
+destination_client = TembaClient(server_url, apikey)
+# ===========================================================================================================
 
 
 date = datetime.date.today()
@@ -157,6 +166,142 @@ def generate_emtct_export(request):
 
 # from django.contrib.messages.views import SuccessMessageMixin
 # @two_factor_auth
+class BulkUpload(FormView):
+    template_name = 'emtct/bulk_upload.html'
+    form_class = BulkForm
+
+    def form_invalid(self, form):
+        dict1 = form.cleaned_data
+
+        invalid_output = self.request.POST.dict()
+
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+
+        print("Invalid flow")
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+        print(dict1)
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+        print("Invalid flow")
+        print(invalid_output)
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+        print(form.errors)
+        return HttpResponseRedirect(reverse_lazy('bulk_upload'))
+
+    def form_valid(self, form):
+        dict1 = form.cleaned_data
+        content = dict1['document']
+        import subprocess
+        subprocess.run(["clear"])
+        print(type(content))
+        # print(str(content.file.tell()))
+
+        # print(content.get_array())
+        count = 0
+        # for item in content.get_array():
+        #     count += 1
+        #     print(count, " ", item)
+        #     break
+        # print(dir(pyexcel))
+        # sheet = pyexcel.get_sheet(file_type="xlsx", file_content=content)
+        sheet = pyexcel.Sheet()
+        # print(dir(sheet))
+        sheet.xlsx = content
+        # sheet.csv = content
+        # print(len(sheet.array))
+        l = 0
+        for row in sheet.array:
+            count += 1
+            print(count, " ", row)
+            if l == 0:
+                print(l, row)
+                l = l+1
+
+                continue
+            else:
+                print(l, row)
+                print(l, 'Start Adding item...........................................')
+                l = l+1
+                contact_params = {
+                    'name': row[1],
+                    'language': None,
+                    'urns': ['tel:+' + str(row[0])],
+                    'groups': ['Active Receivers', 'All FC-EMTCT'],
+                    'fields': {'sex': row[2],  'village': row[7], 'nin': row[3], 'sub_county': row[5], 'district': row[4], 'parish': row[6], 'registered_by': 'EMTCT Bulk Upload'}
+                }
+                print(contact_params)
+
+            # # import logging
+
+            # # import sys
+            try:
+
+                resp = destination_client.create_contact(name=contact_params['name'], language=contact_params['language'], urns=contact_params[
+                    'urns'], fields=contact_params['fields'], groups=contact_params['groups'])  # .iterfetches(retry_on_rate_exceed=True)
+                print(resp.uuid, " Sucesss........................................")
+                submitteddata = SubmittedData.objects.create(
+                    uuid=resp.uuid, contact_unit=contact_params)
+                submitteddata.save()
+                messages.success(
+                    self.request, 'Mother has been successfully registered')
+            except HTTPError as e:
+                print("HTTPError ..................", str(e))
+                messages.error(
+                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+
+            except TembaHttpError as e:
+                print("TembaHTTPError ..................", str(e))
+                messages.error(
+                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+            except TembaConnectionError as e:
+                print("Temab Connection Error....................... ",
+                      str(e), " ..................")
+                messages.error(
+                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+
+            except ConnectionResetError as e:
+                print("Connect Reset Error....................... ",
+                      str(e), " ..................")
+                messages.error(
+                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+
+            except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
+
+                if "URN belongs to another contact" in str(ex):
+                    messages.error(self.request, 'The contact ' +
+                                   contact_params['urns'][0] + ' already added')
+                    print("Temba Bad Error....................... ",
+                          str(ex), " ..................")
+                    # print("The contact  ", contact.urns, " will be reviewed later")
+                    print("The contact  ",
+                          contact_params['urns'][0], " is already added")
+            except:
+                print(
+                    "Mother failed to register Contact IT administrator or Click back to Try again")
+
+            if count == 3:
+                break
+        # print(type(sheet.xlsx))
+        # valid_output = self.request.POST.dict()
+        # print(valid_output)
+
+        print("<==========================================>")
+        print("<==========================================>")
+        # print(type(sheet))
+        # print(dir(content))
+        print("<==========================================>")
+
+        print("Valid......................................")
+        print(dict1)
+
+        return HttpResponseRedirect(reverse_lazy('bulk_upload'))
 
 
 class MotherRegistration(FormView):
@@ -172,10 +317,10 @@ class MotherRegistration(FormView):
 
     def form_valid(self, form):
         dict1 = form.cleaned_data
-        print(dict1)
+        # print(dict1)
 
-        apikey = env.str("API_KEY")   # provide api key
-        server_url = env.str("SERVER_URL")  # provide server url
+        # provide api key
+        # provide server url
         district = dict1['district']
         subcounty = dict1['subcounty']
         facility = dict1['facility']
@@ -220,11 +365,6 @@ class MotherRegistration(FormView):
         # print("......................Saved in DB.............................")
         print("========================== API Mother Registration ==============================")
 
-        destination_token = apikey
-        from temba_client.exceptions import TembaException, TembaConnectionError, TembaHttpError, TembaNoSuchObjectError, TembaBadRequestError
-        from requests.exceptions import HTTPError
-        from temba_client.v2 import TembaClient
-        destination_client = TembaClient(server_url, destination_token)
         # import logging
 
         # import sys
@@ -269,7 +409,34 @@ class MotherRegistration(FormView):
                 # print("The contact  ", contact.urns, " will be reviewed later")
                 print("The contact  ",
                       contact_params['urns'][0], " is already added")
+        except:
+            print(
+                "Mother failed to register Contact IT administrator or Click back to Try again")
 
+        return HttpResponseRedirect(reverse_lazy('mother_registration'))
+
+    def form_invalid(self, form):
+        invalid_output = self.request.POST.dict()
+        dict1 = form.cleaned_data
+
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+
+        print("Invalid flow")
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+        print(dict1)
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+        print("Invalid flow")
+        print(invalid_output)
+        print("<==========================================>")
+        print("<==========================================>")
+        print("<==========================================>")
+        print(form.errors)
         return HttpResponseRedirect(reverse_lazy('mother_registration'))
 
 

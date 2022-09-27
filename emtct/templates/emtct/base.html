@@ -30,6 +30,7 @@
     <script src="https://use.fontawesome.com/a4778c4b45.js"></script>
 
     <script type="text/javascript" src="{% static 'js/vendor/modernizr-2.8.3.min.js' %}"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.0/iconify-icon.min.js"></script>
 </head>
 
 <body>
@@ -96,8 +97,19 @@
                 <a href="{% url 'mother_registration' %}" style="color: inherit;">
                     <div class="thumbnail menu-thumbs">
                         <!--<i class="zmdi zmdi-download zmdi-hc-lg"></i> -->
-                        <i class="zmdi zmdi-account-o zmdi-hc-lg"></i>
+                        <!-- <i class="zmdi zmdi-account-o zmdi-hc-lg"></i> -->
+                        <iconify-icon icon="zmdi:accounts"></iconify-icon>
                         <h4>Mother Registration</h4>
+                    </div>
+                    </a>
+                    <br>
+
+                <!----- Bulk Upload------->
+                <a href="{% url 'bulk_upload' %}" style="color: inherit;">
+                    <div class="thumbnail menu-thumbs">
+                        <!--<i class="zmdi zmdi-download zmdi-hc-lg"></i> -->
+                        <i class="zmdi zmdi-upload zmdi-hc-lg"></i>
+                        <h4>Bulk Upload</h4>
                     </div>
                     </a>
                     <br>

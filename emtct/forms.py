@@ -105,6 +105,11 @@ class ChoiceFieldNoValidation(ChoiceField):
         pass
 
 
+class BulkForm(forms.Form):
+    document = forms.FileField(
+        label='Select a file')
+
+
 class MotherForm(forms.Form):
     # baby_age_at_enrollment
     name = forms.CharField(label="Mother's name", widget=forms.TextInput(
@@ -112,18 +117,18 @@ class MotherForm(forms.Form):
     sex = forms.CharField(widget=forms.HiddenInput())
     mothers_condition = forms.ChoiceField(
         label="Mother's Current Status",  choices=LACTATING_CHOICES)
-    number_of_weeks = forms.IntegerField(label="How many weeks is the pregnancy?", widget=forms.TextInput(
+    number_of_weeks = forms.IntegerField(required=False, label="How many weeks is the pregnancy?", widget=forms.TextInput(
         attrs={'placeholder': 'Number of weeks'}))
-    age_of_baby = forms.IntegerField(label="How many months old is the baby?", widget=forms.TextInput(
+    age_of_baby = forms.IntegerField(required=False, label="How many months old is the baby?", widget=forms.TextInput(
         attrs={'placeholder': 'Number of Months'}))
     message_to_receive = forms.ChoiceField(
         label="What content would like to receive?", choices=MESSAGE_TO_RECEIVE)
-    phonenumber = forms.CharField(label="Mother's Phone Number (start with 256)",
-                                  widget=forms.TextInput(attrs={'placeholder': '256XXXXXXXXX'}))
-    # phonenumber = PhoneNumberField(region='UG', label="Mother's Contact (start with +256)",
-    #    widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
-    # trusted_person = PhoneNumberField(region='UG', required=False, label="Trusted Person Phone Number (start with +256)",
-    #   widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
+    # phonenumber = forms.CharField(label="Mother's Phone Number (start with 256)",
+    #   widget=forms.TextInput(attrs={'placeholder': '256XXXXXXXXX'}))
+    phonenumber = PhoneNumberField(region='UG', label="Mother's Contact (start with +256)",
+                                   widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
+    trusted_person = PhoneNumberField(region='UG', required=False, label="Trusted Person Phone Number (start with +256)",
+                                      widget=forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}))
     language = forms.ChoiceField(choices=LANGUAGE_CHOICES)
     art_number = forms.CharField(label="What is Patient's ART number", widget=forms.TextInput(
         attrs={'placeholder': 'ART number'}))
