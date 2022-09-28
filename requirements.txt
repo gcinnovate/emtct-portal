@@ -5,6 +5,7 @@ autopep8==1.7.0
 backports.zoneinfo==0.2.1
 billiard==3.6.4.0
 celery==5.2.6
+celery-progress==0.1.2
 certifi==2021.10.8
 chardet==4.0.0
 charset-normalizer==2.0.12
@@ -21,6 +22,7 @@ Django==4.0
 django-appconf==1.0.5
 django-cache-url==3.4.2
 django-celery-beat==2.1.0
+django-celery-results==2.4.0
 django-crispy-forms==1.14.0
 django-excel==0.0.10
 django-import-export==2.8.0
@@ -52,6 +54,8 @@ pycodestyle==2.9.1
 pyexcel==0.7.0
 pyexcel-io==0.6.6
 pyexcel-webio==0.1.4
+pyexcel-xls==0.7.0
+pyexcel-xlsx==0.6.0
 pyparsing==3.0.9
 python-crontab==2.6.0
 python-dateutil==2.8.2

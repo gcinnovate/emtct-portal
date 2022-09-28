@@ -11,3 +11,4 @@ location.py
 *.pyc
 db.sqlite3
 .env
+requirementsdev.txt
