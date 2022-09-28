@@ -1,5 +1,6 @@
 django4
 my_env
+__pycache__/
 xxx.zip
 reqbackup.txt
 requirements.pip
@@ -8,3 +9,5 @@ env.sample
 requirementsbckp.txt
 location.py
 *.pyc
+db.sqlite3
+.env
