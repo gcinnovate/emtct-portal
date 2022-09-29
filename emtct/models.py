@@ -41,12 +41,13 @@ USER_ROLE = (
 )
 
 yesterday = (datetime.now() - timedelta(days=1)).isoformat()
-emtct_appointment_reminder_groups = ['ART Appointment Reminders', 'ART EID Appointment Reminders']
+emtct_appointment_reminder_groups = [
+    'ART Appointment Reminders', 'ART EID Appointment Reminders']
 emtct_appointment_reminder_message_start = ['remind']
 
 
 def log_activity(content_object, user):
-    return TimelineLog.objects.create(content_object=content_object,user=user)
+    return TimelineLog.objects.create(content_object=content_object, user=user)
 
 
 class RapidPro(models.Model):
@@ -72,7 +73,6 @@ class RapidPro(models.Model):
             return rapidpro.save()
         else:
             return 'Only supports one RapidPro instance'
-
 
     @classmethod
     def sync_rapidpro(cls):
@@ -169,15 +169,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=13, null=False)
     email = models.EmailField(unique=True, max_length=100, null=False)
     user_role = models.CharField(max_length=36, null=False, choices=USER_ROLE)
-    health_facility = models.ForeignKey(HealthFacility, null=True, blank=True, on_delete=models.CASCADE)
+    health_facility = models.ForeignKey(
+        HealthFacility, null=True, blank=True, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     sms_auth = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
-    created_by = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='creator')
+    created_by = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='creator')
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
-    updated_by = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='updater')
+    updated_by = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='updater')
 
     objects = UserManager()
 
@@ -200,7 +203,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def email_admin(self, subject, message, **kwargs):
-        send_mail(subject, message, settings.EMAIL_HOST_USER, [self.created_by.email], **kwargs)
+        send_mail(subject, message, settings.EMAIL_HOST_USER,
+                  [self.created_by.email], **kwargs)
 
     @classmethod
     def get_logged_in_admin(cls, user_id):
@@ -224,7 +228,8 @@ class UgandaEMRExport(models.Model):
 
     @classmethod
     def sync_data(cls, export=None):
-        exports = cls.objects.filter(sync_status=False, export_file=export).all()
+        exports = cls.objects.filter(
+            sync_status=False, export_file=export).all()
         update_contacts = 0
         for export in exports:
             df = pd.read_excel(export.export_file)
@@ -232,7 +237,8 @@ class UgandaEMRExport(models.Model):
             for index, row in df.iterrows():
                 urn = "tel:+" + str(row['Phone'])
                 Contact.update_emtct_contact(urn=urn, name=row['Name'], last_visit_date=str(row['Last-Visit-Date']),
-                                             next_appointment_date=str(row['Next-Appointment-Date']),
+                                             next_appointment_date=str(
+                                                 row['Next-Appointment-Date']),
                                              encounter_type=row['Encounter-Type'], patient_id=row['ART-Number'],
                                              openmrs_id=row['OpenMRS-ID'], eid_number=row['EID-Number'], sex=row['Sex'],
                                              birth_date=str(row['Birth-Date']), age_years=row['Age-Years'],
@@ -246,7 +252,7 @@ class UgandaEMRExport(models.Model):
 
     @classmethod
     def get_exports(cls, start_date, end_date, user):
-        return cls.objects.filter(uploaded_by=user, created_at__range=(start_date,end_date)).all()
+        return cls.objects.filter(uploaded_by=user, created_at__range=(start_date, end_date)).all()
 
     @classmethod
     def get_count_exports(cls, start_date, end_date, user):
@@ -276,7 +282,8 @@ class Contact(models.Model):
     birth_date = models.CharField(max_length=50, null=True)
     age_years = models.CharField(max_length=50, null=True)
     health_facility = models.CharField(max_length=50, null=True)
-    uganda_emr_export = models.ForeignKey(UgandaEMRExport, null=True, on_delete=models.CASCADE)
+    uganda_emr_export = models.ForeignKey(
+        UgandaEMRExport, null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=True)
 
@@ -304,27 +311,41 @@ class Contact(models.Model):
                                                                          'next_appointment_date'),
                                                                      encounter_type=contact.fields.get(
                                                                          'encounter_type'),
-                                                                     art_number=contact.fields.get('patient_id'),
-                                                                     openmrs_id=contact.fields.get('openmrs_id'),
-                                                                     eid_number=contact.fields.get('eid_number'),
-                                                                     sex=contact.fields.get('sex'),
-                                                                     birth_date=contact.fields.get('birth_date'),
-                                                                     age_years=contact.fields.get('age_years'),
+                                                                     art_number=contact.fields.get(
+                                                                         'patient_id'),
+                                                                     openmrs_id=contact.fields.get(
+                                                                         'openmrs_id'),
+                                                                     eid_number=contact.fields.get(
+                                                                         'eid_number'),
+                                                                     sex=contact.fields.get(
+                                                                         'sex'),
+                                                                     birth_date=contact.fields.get(
+                                                                         'birth_date'),
+                                                                     age_years=contact.fields.get(
+                                                                         'age_years'),
                                                                      health_facility=contact.fields.get
                                                                      ('health_facility'))
 
                     else:
                         cls.objects.create(uuid=contact.uuid, name=contact.name,
                                            phone=cls.clean_contact(contact), group=group,
-                                           last_visit_date=contact.fields.get('last_visit_date'),
-                                           next_appointment=contact.fields.get('next_appointment_date'),
-                                           encounter_type=contact.fields.get('encounter_type'),
-                                           art_number=contact.fields.get('patient_id'),
-                                           openmrs_id=contact.fields.get('openmrs_id'),
-                                           eid_number=contact.fields.get('eid_number'),
+                                           last_visit_date=contact.fields.get(
+                                               'last_visit_date'),
+                                           next_appointment=contact.fields.get(
+                                               'next_appointment_date'),
+                                           encounter_type=contact.fields.get(
+                                               'encounter_type'),
+                                           art_number=contact.fields.get(
+                                               'patient_id'),
+                                           openmrs_id=contact.fields.get(
+                                               'openmrs_id'),
+                                           eid_number=contact.fields.get(
+                                               'eid_number'),
                                            sex=contact.fields.get('sex'),
-                                           birth_date=contact.fields.get('birth_date'),
-                                           age_years=contact.fields.get('age_years'),
+                                           birth_date=contact.fields.get(
+                                               'birth_date'),
+                                           age_years=contact.fields.get(
+                                               'age_years'),
                                            health_facility=contact.fields.get
                                            ('health_facility'))
                         contacts_added += 1
@@ -348,7 +369,7 @@ class Contact(models.Model):
 
     @classmethod
     def update_emtct_contact(cls, urn, name, last_visit_date, next_appointment_date, encounter_type, patient_id,
-                       openmrs_id, eid_number, sex, birth_date, age_years, health_facility):
+                             openmrs_id, eid_number, sex, birth_date, age_years, health_facility):
         client = RapidPro.get_rapidpro_client()
         return client.update_contact(urn, name=name, fields=dict(next_appointment_date=next_appointment_date,
                                                                  last_visit_date=last_visit_date,
@@ -356,6 +377,7 @@ class Contact(models.Model):
                                                                  openmrs_id=openmrs_id, eid_number=eid_number, sex=sex,
                                                                  birth_date=birth_date, age_years=age_years,
                                                                  health_facility=health_facility))
+
 
 class Message(models.Model):
     message_id = models.IntegerField()
@@ -410,10 +432,12 @@ class Message(models.Model):
     @classmethod
     def get_emtct_export(cls, start_date, end_date, health_facility):
         return cls.objects.filter(follow_up_date__range=(start_date, end_date),
-                                    text__icontains=emtct_appointment_reminder_message_start,
+                                  text__icontains=emtct_appointment_reminder_message_start,
                                   contact__health_facility__icontains=health_facility).all()
 
-#================LOCATION======================================
+# ================LOCATION======================================
+
+
 class FcappOrgunits(models.Model):
     uid = models.CharField(max_length=11)
     name = models.CharField(max_length=230)
@@ -426,11 +450,12 @@ class FcappOrgunits(models.Model):
     updated = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'fcapp_orgunits'
+
 
 class SubmittedData(models.Model):
     uuid = models.CharField(max_length=45)
-    contact_unit =models.JSONField()
+    contact_unit = models.JSONField()
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=True)
