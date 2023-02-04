@@ -39,8 +39,6 @@ apikey = env.str("API_KEY")
 server_url = env.str("SERVER_URL")
 destination_client = TembaClient(server_url, apikey)
 # ===========================================================================================================
-
-
 date = datetime.date.today()
 start_datetime_of_current_month = datetime.datetime(date.year, date.month, 1)
 end_datetime_of_current_month = datetime.datetime(
@@ -286,7 +284,7 @@ class BulkUpload(FormView):
                 print(
                     "Mother failed to register Contact IT administrator or Click back to Try again")
 
-            if count == 3:
+            if count == 3:  # Only 3 for testing purposes
                 break
         # print(type(sheet.xlsx))
         # valid_output = self.request.POST.dict()
@@ -402,13 +400,20 @@ class MotherRegistration(FormView):
         except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
 
             if "URN belongs to another contact" in str(ex):
-                messages.error(self.request, 'The contact ' +
-                               contact_params['urns'][0] + ' already added')
+                # messages.error(self.request, 'The contact ' +
+                #    contact_params['urns'][0] + ' already added')
+                dest_contact = destination_client.get_contacts(
+                    urn=contact_params['urns'][0]).first()
+                # print(dest_contact.uuid)
+                destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params['language'], urns=contact_params[
+                'urns'], fields=contact_params['fields'], groups=contact_params['groups'])
+                messages.success(
+                    self.request, 'Mother has been successfully Updated')
                 print("Temba Bad Error....................... ",
                       str(ex), " ..................")
                 # print("The contact  ", contact.urns, " will be reviewed later")
                 print("The contact  ",
-                      contact_params['urns'][0], " is already added")
+                      contact_params['urns'][0], " is already added now Updated")
         except:
             print(
                 "Mother failed to register Contact IT administrator or Click back to Try again")
