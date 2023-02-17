@@ -32,6 +32,10 @@ from temba_client.exceptions import TembaException, TembaConnectionError, TembaH
 from requests.exceptions import HTTPError
 from temba_client.v2 import TembaClient
 from environs import Env
+from django.contrib.auth.mixins import LoginRequiredMixin
+from pathlib import Path
+import time
+
 env = Env()
 env.read_env()
 # ================SERVER ADDRESS AND API KEY=================================================================
@@ -164,7 +168,7 @@ def generate_emtct_export(request):
 
 # from django.contrib.messages.views import SuccessMessageMixin
 # @two_factor_auth
-class BulkUpload(FormView):
+class BulkUpload(LoginRequiredMixin, FormView):
     template_name = 'emtct/bulk_upload.html'
     form_class = BulkForm
 
@@ -215,6 +219,15 @@ class BulkUpload(FormView):
         # sheet.csv = content
         # print(len(sheet.array))
         l = 0
+        data_entries = []
+
+        # Open the file in append mode
+
+        # filename = 'failedtemplate.xlsx'
+        # filepath = os.path.join(settings.STATICFILES_DIRS[0], filename)
+        # book = pyexcel.get_book(filepath=filepath)
+        # sheet = book["Sheet1"]
+
         for row in sheet.array:
             count += 1
             print(count, " ", row)
@@ -249,6 +262,7 @@ class BulkUpload(FormView):
                 submitteddata.save()
                 messages.success(
                     self.request, 'Mother has been successfully registered')
+
             except HTTPError as e:
                 print("HTTPError ..................", str(e))
                 messages.error(
@@ -273,8 +287,19 @@ class BulkUpload(FormView):
             except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
 
                 if "URN belongs to another contact" in str(ex):
-                    messages.error(self.request, 'The contact ' +
-                                   contact_params['urns'][0] + ' already added')
+                    # messages.error(self.request, 'The contact ' +
+                    #    contact_params['urns'][0] + ' already added')
+                    dest_contact = destination_client.get_contacts(
+                        urn=contact_params['urns'][0]).first()
+                    # print(dest_contact.uuid)
+                    destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params[
+                                                      'language'], urns=contact_params['urns'], fields=contact_params['fields'], groups=contact_params['groups'])
+                    datarow = [row[0], row[1], row[2], row[3],
+                               row[4], row[5], row[6], row[7], 'failed']
+                    print(datarow)
+                    data_entries.append(datarow)
+                    # messages.success(
+                    # self.request, 'Mother has been successfully Updated')
                     print("Temba Bad Error....................... ",
                           str(ex), " ..................")
                     # print("The contact  ", contact.urns, " will be reviewed later")
@@ -283,10 +308,38 @@ class BulkUpload(FormView):
             except:
                 print(
                     "Mother failed to register Contact IT administrator or Click back to Try again")
+                datarow = [row[0], row[1], row[2], row[3],
+                           row[4], row[5], row[6], row[7], 'failed']
+                data_entries.append(datarow)
 
-            if count == 3:  # Only 3 for testing purposes
+            if count == 4:  # Only 3 for testing purposes
                 break
-        # print(type(sheet.xlsx))
+        # Add data to sheet
+        # sheet.extend_rows(data)
+        # book.save_as(filepath)
+
+        # Add to error file
+        if data_entries:
+
+            user = self.request.user
+            dir_for_user = user
+
+            base_dir = Path(settings.STATIC_ROOT)
+            subdirectory_path = base_dir.joinpath(str(dir_for_user))
+            subdirectory_path.mkdir(parents=True, exist_ok=True)
+            # time_now = time.strftime("%Y%m%d-%H%M%S")
+
+            # filename = 'errors-' + time_now + '.txt'
+            filename = 'errors.txt'
+            file_path = subdirectory_path.joinpath(filename)
+
+            with open(file_path, 'w') as f:
+                number_line = 0
+                for i, item in enumerate(data_entries):
+                    f.write(f"{i + 1}. {item}\n")
+                f.write('\n')
+
+        # # print(type(sheet.xlsx))
         # valid_output = self.request.POST.dict()
         # print(valid_output)
 
@@ -297,7 +350,7 @@ class BulkUpload(FormView):
         print("<==========================================>")
 
         print("Valid......................................")
-        print(dict1)
+        # print(dict1)
 
         return HttpResponseRedirect(reverse_lazy('bulk_upload'))
 
@@ -406,7 +459,7 @@ class MotherRegistration(FormView):
                     urn=contact_params['urns'][0]).first()
                 # print(dest_contact.uuid)
                 destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params['language'], urns=contact_params[
-                'urns'], fields=contact_params['fields'], groups=contact_params['groups'])
+                    'urns'], fields=contact_params['fields'], groups=contact_params['groups'])
                 messages.success(
                     self.request, 'Mother has been successfully Updated')
                 print("Temba Bad Error....................... ",
