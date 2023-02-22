@@ -12,3 +12,5 @@ db.sqlite3
 .env
 requirementsdev.txt
 jkya*
+staticfiles
+errors.txt

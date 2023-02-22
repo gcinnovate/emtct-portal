@@ -20,14 +20,33 @@
                   </div>
                 {% endif %}
                 {% if message.tags == 'error' %}
+                  {% if 'safe' in message.tags %}
+
                 <div class="alert alert-danger" role="alert">
-                      {{message}}
+                      {{message|safe}}
                   </div>
+                  {%endif%}
                 {% endif %}
 
                 
               {% endfor %}
               {% endif %} -->
+             
+                {% for message in messages %}
+                
+                    {% if 'safe' in message.tags %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message|safe }}
+                        <!-- <a href="{% static '/errors.txt' %}">  -->
+                        <a href="{% static '/errors.txt' %}">Here to Access the Error File</a>
+                    
+                      </div>
+                    {% else %}
+                        {{ message }}
+                    {% endif %}
+                
+                {% endfor %}
+           
                 <form method="post" action ="" enctype="multipart/form-data" novalidate>
                                       
 

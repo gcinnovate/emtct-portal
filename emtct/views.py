@@ -312,7 +312,7 @@ class BulkUpload(LoginRequiredMixin, FormView):
                            row[4], row[5], row[6], row[7], 'failed']
                 data_entries.append(datarow)
 
-            if count == 4:  # Only 3 for testing purposes
+            if count == 6:  # Only 3 for testing purposes
                 break
         # Add data to sheet
         # sheet.extend_rows(data)
@@ -321,23 +321,27 @@ class BulkUpload(LoginRequiredMixin, FormView):
         # Add to error file
         if data_entries:
 
-            user = self.request.user
-            dir_for_user = user
+            # user = self.request.user
+            # dir_for_user = user
+            filename = 'errors.txt'
 
             base_dir = Path(settings.STATIC_ROOT)
-            subdirectory_path = base_dir.joinpath(str(dir_for_user))
-            subdirectory_path.mkdir(parents=True, exist_ok=True)
+            file_path = base_dir.joinpath(filename)
+            # subdirectory_path.mkdir(parents=True, exist_ok=True)
             # time_now = time.strftime("%Y%m%d-%H%M%S")
 
             # filename = 'errors-' + time_now + '.txt'
-            filename = 'errors.txt'
-            file_path = subdirectory_path.joinpath(filename)
+
+            # file_url = reverse(file_path)
 
             with open(file_path, 'w') as f:
                 number_line = 0
                 for i, item in enumerate(data_entries):
                     f.write(f"{i + 1}. {item}\n")
                 f.write('\n')
+            messages.error(self.request,
+                           f'Click',
+                           extra_tags='safe')
 
         # # print(type(sheet.xlsx))
         # valid_output = self.request.POST.dict()

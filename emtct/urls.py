@@ -4,9 +4,12 @@ import emtct.views as emtct_views
 # from .views import MotherRegistration, region_list, district_list, subcounty_list, parish_list
 from django.contrib.auth import views as auth_views
 # from django.contrib.auth.views import LoginView, LogoutView
+from django.conf.urls.static import static
+
 from django.conf import settings
 from django.contrib.auth.views import (PasswordResetView, PasswordResetDoneView, PasswordChangeView,
                                        PasswordChangeDoneView, PasswordResetConfirmView, PasswordResetCompleteView)
+
 
 urlpatterns = [
 
@@ -76,6 +79,12 @@ urlpatterns = [
          emtct_views.parish_list, name='parish_list'),
 
 
+    #     path('my-file/', static.serve,
+    #          {'document_root': settings.STATIC_ROOT+'/my_folder/', 'path': 'errors.txt'}),
 
 
-]
+
+
+
+
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
