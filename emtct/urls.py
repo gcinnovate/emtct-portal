@@ -77,14 +77,4 @@ urlpatterns = [
          emtct_views.subcounty_list, name='subcounty_list'),
     path('mother_registration/parishjson/<int:id>',
          emtct_views.parish_list, name='parish_list'),
-
-
-    #     path('my-file/', static.serve,
-    #          {'document_root': settings.STATIC_ROOT+'/my_folder/', 'path': 'errors.txt'}),
-
-
-
-
-
-
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

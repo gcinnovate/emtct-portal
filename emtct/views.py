@@ -6,7 +6,7 @@ from django.views.generic.edit import FormView
 from distutils import dist
 import uuid
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -34,7 +34,27 @@ from temba_client.v2 import TembaClient
 from environs import Env
 from django.contrib.auth.mixins import LoginRequiredMixin
 from pathlib import Path
+# from django.contrib.auth.models import User
+# from .forms import CustomUserCreationForm
 import time
+
+# ==========================User Create ====================================================================
+
+
+# @login_required
+# @permission_required('auth.add_user', raise_exception=True)
+# def create_user(request):
+#     if request.method == 'POST':
+#         form = CustomUserCreationForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             # return redirect('users-list')
+#             return HttpResponseRedirect(reverse_lazy('users-list'))
+#     else:
+#         form = CustomUserCreationForm()
+#     return render(request, 'emtct/register_user.html', locals())
+# ====================== END USER CREATE ========================================================================
+
 
 env = Env()
 env.read_env()
@@ -321,12 +341,17 @@ class BulkUpload(LoginRequiredMixin, FormView):
         # Add to error file
         if data_entries:
 
+            # ===========================
             # user = self.request.user
             # dir_for_user = user
+            # ===========================
             filename = 'errors.txt'
 
             base_dir = Path(settings.STATIC_ROOT)
-            file_path = base_dir.joinpath(filename)
+            # path_dir = base_dir.joinpath(str(dir_for_user))
+            # path_dir.mkdir(parents=True, exist_ok=True)
+            # file_path = path_dir.joinpath(filename)
+            file_path = base_dir.joinpath(filename)  # needed line testing
             # subdirectory_path.mkdir(parents=True, exist_ok=True)
             # time_now = time.strftime("%Y%m%d-%H%M%S")
 
@@ -340,8 +365,7 @@ class BulkUpload(LoginRequiredMixin, FormView):
                     f.write(f"{i + 1}. {item}\n")
                 f.write('\n')
             messages.error(self.request,
-                           f'Click',
-                           extra_tags='safe')
+                           f'Click', extra_tags='safe')
 
         # # print(type(sheet.xlsx))
         # valid_output = self.request.POST.dict()
@@ -477,29 +501,29 @@ class MotherRegistration(FormView):
 
         return HttpResponseRedirect(reverse_lazy('mother_registration'))
 
-    def form_invalid(self, form):
-        invalid_output = self.request.POST.dict()
-        dict1 = form.cleaned_data
+    # def form_invalid(self, form):
+    #     invalid_output = self.request.POST.dict()
+    #     dict1 = form.cleaned_data
 
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
+    #     print("<==========================================>")
+    #     print("<==========================================>")
+    #     print("<==========================================>")
 
-        print("Invalid flow")
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
-        print(dict1)
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
-        print("Invalid flow")
-        print(invalid_output)
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
-        print(form.errors)
-        return HttpResponseRedirect(reverse_lazy('mother_registration'))
+    #     print("Invalid flow")
+    #     print("<==========================================>")
+    #     print("<==========================================>")
+    #     print("<==========================================>")
+    #     print(dict1)
+    #     print("<==========================================>")
+    #     print("<==========================================>")
+    #     print("<==========================================>")
+    #     print("Invalid flow")
+    #     print(invalid_output)
+    #     print("<==========================================>")
+    #     print("<==========================================>")
+    #     print("<==========================================>")
+    #     print(form.errors)
+    #     return HttpResponseRedirect(reverse_lazy('mother_registration'))
 
 
 @login_required
@@ -558,7 +582,11 @@ def import_ugandaemr_emtct_export(request):
 
 @two_factor_auth
 def register_user(request):
-    logged_in_admin = User.get_logged_in_admin(request.user.id)
+
+    print('beginning nowwwwwwwwwwwwwwwwwww')
+    # logged_in_admin = User.get_logged_in_admin(request.user.id)
+    logged_in_admin = User
+    print(request.user.id)
     registered = False
     if logged_in_admin:
         if request.method == 'POST':
@@ -580,7 +608,8 @@ def register_user(request):
                 email = EmailMessage(
                     mail_subject, message, to=[to_email]
                 )
-                email.send()
+                # email.send()
+                print('Middle nowwwwwwwwwwwwwwwwwww')
                 return HttpResponseRedirect('/users')
             else:
                 print(form.errors)
@@ -588,6 +617,7 @@ def register_user(request):
             form = UserForm()
     else:
         messages.warning(request, 'You do not have access to add a user.')
+    print('End nowwwwwwwwwwwwwwwwwww')
 
     return render(request, 'emtct/register_user.html', locals())
 

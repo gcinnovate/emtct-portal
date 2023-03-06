@@ -1,10 +1,25 @@
 from django import forms
 from django.forms import ChoiceField
 from phonenumber_field.formfields import PhoneNumberField
+# from django.contrib.auth.forms import UserCreationForm
+# from django.contrib.auth.models import User
 
 from emtct.models import *
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit
+
+
+# class CustomUserCreationForm(UserCreationForm):
+#     # email = forms.EmailField(required=True)
+#     password = forms.CharField(min_length=6, max_length=30)
+#     phone_number = forms.CharField(
+#         max_length=13, min_length=13, help_text='+2567XXXXXXXX')
+
+#     class Meta:
+#         model = User
+#         # fields = ['username', 'email', 'password1', 'password2']
+#         fields = ('first_name', 'last_name', 'phone_number', 'email',
+#                   'password', 'user_role', 'health_facility')
 
 
 class UserForm(forms.ModelForm):
