@@ -11,8 +11,6 @@ Add Values for the following variables
 
 ## DEBUG must be False in Production deployment
 
-DEBUG=False
-
 ## Django secret Key
 
 SECRET_KEY=
@@ -37,12 +35,21 @@ DB_USER=postgres
 
 DB_PASSWORD=
 
+## Super User URL ending with /
+
+SUPERUSER_URL=
+
+## Hosts
+
+ALLOWED_HOSTS=
+
 ## Sample .env
 
-DEBUG=False
 SECRET_KEY=yUmuJbbE77lzJAjhR7GxUhMkuJHMeIBJSj_UidaHIVo
 SERVER_URL=http://xxxxxxxxx.cccccc.gggg.health.go.ug
 API_KEY=X6038fcf80a3d8c8088f796ff0302b3462007b7X
 DB_NAME=emtct_proddb
 DB_USER=postgres
 DB_PASSWORD=123456
+SUPERUSER_URL=eee/
+ALLOWED_HOSTS=x.x.x.x

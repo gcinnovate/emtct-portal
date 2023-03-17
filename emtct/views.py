@@ -314,10 +314,10 @@ class BulkUpload(LoginRequiredMixin, FormView):
                     # print(dest_contact.uuid)
                     destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params[
                                                       'language'], urns=contact_params['urns'], fields=contact_params['fields'], groups=contact_params['groups'])
-                    datarow = [row[0], row[1], row[2], row[3],
-                               row[4], row[5], row[6], row[7], 'failed']
-                    print(datarow)
-                    data_entries.append(datarow)
+                    # datarow = [row[0], row[1], row[2], row[3],
+                    #            row[4], row[5], row[6], row[7], 'failed']
+                    # print(datarow)
+                    # data_entries.append(datarow)
                     # messages.success(
                     # self.request, 'Mother has been successfully Updated')
                     print("Temba Bad Error....................... ",
@@ -332,18 +332,20 @@ class BulkUpload(LoginRequiredMixin, FormView):
                            row[4], row[5], row[6], row[7], 'failed']
                 data_entries.append(datarow)
 
-            if count == 6:  # Only 3 for testing purposes
-                break
+            # if count == 6:  # Only 3 for testing purposes
+            #     break
         # Add data to sheet
         # sheet.extend_rows(data)
         # book.save_as(filepath)
+        messages.success(self.request,
+                         'Number of Mothers Registered <b>'+str(count)+'</b>')
 
         # Add to error file
         if data_entries:
 
             # ===========================
             # user = self.request.user
-            # dir_for_user = user
+            # dir_for_user = use
             # ===========================
             filename = 'errors.txt'
 

@@ -59,7 +59,7 @@ if DEBUG is False:
     X_FRAME_OPTIONS = 'DENY'
 
 # ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [env.str("ALLOWED_HOSTS")]
 
 
 # Application definition
