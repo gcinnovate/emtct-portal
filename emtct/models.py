@@ -126,7 +126,10 @@ class HealthFacility(models.Model):
         verbose_name_plural = 'Health Facilities'
         ordering = ('name',)
 
-    def __unicode__(self):
+    # def __unicode__(self):
+    #     return self.name
+
+    def __str__(self):
         return self.name
 
 
