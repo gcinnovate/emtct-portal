@@ -420,18 +420,48 @@ class MotherRegistration(FormView):
 
         # print(district," == ", subcounty," === ", facility )
         # print("<------------------------------------------------>")
+        groups = ['All FC-EMTCT']
+        emtctpreg_date = None
+        emtctbirth_date = None
+
+        if dict1['number_of_weeks']:
+            emtctpreg_date = datetime.datetime.now() - datetime.timedelta(weeks=int(dict1['number_of_weeks'])) #emtct preg date  
+            
+            if (emtctpreg_date + datetime.timedelta(days=270)) < datetime.datetime.now():
+                groups.append('ART Pregnant Mothers')
+            emtctpreg_date = str(emtctpreg_date)
+
+        if  dict1['age_of_baby']:
+            emtctbirth_date = datetime.datetime.now() - datetime.timedelta(months=int( dict1['age_of_baby'])) #emtct baby birth date
+            emtctbirth_date = str(emtctbirth_date)
+            if (emtctbirth_date + datetime.timedelta(years=2)) < datetime.datetime.now():
+                groups.append('ART Lactating Mothers')
+            emtctbirth_date = str(emtctbirth_date)
+
+        if dict1['message_to_receive'] == "AppointmentReminder":
+            groups.append('ART Appointment Reminders')
+        
+        if dict1['message_to_receive'] == "HealthMessages":
+            groups.append('ART Health Messages')
+
+
+
+
         contact_params = {
             'name': dict1['name'],
             'language': dict1['language'],
             'urns': ['tel:' + str(dict1['phonenumber'])],
-            'groups': ['Active Receivers', 'All FC-EMTCT'],
-            'fields': {'sex': dict1['sex'],  'art_number': dict1['art_number'],  'sub_county': subcounty, 'district': district, 'health_facility': facility, 'messages_to_receive': None, 'trusted_person': None, 'registered_by': 'EMTCT Portal'}
-        }  # 'lmp': str(dict1['lmp']),
+            'groups': groups,
+            # 'fields': {'sex': dict1['sex'],  'art_number': dict1['art_number'],  'sub_county': subcounty, 'district': district, 'health_facility': facility, 'messages_to_receive': None, 'trusted_person': None, 'registered_by': 'EMTCT Portal'}
+            'fields': { 'fc_emtct_pregnancy_date': emtctpreg_date ,'fc_emtct_baby_date': emtctbirth_date ,'sex': dict1['sex'], 'baby_age_at_enrollment': dict1['age_of_baby'] if dict1['age_of_baby'] else None ,'pregnancy_age_at_enrollment': dict1['number_of_weeks'] if dict1['number_of_weeks'] else None ,'art_number': dict1['art_number'],  'sub_county': subcounty, 'district': district, 'health_facility': facility, 'messages_to_receive': None, 'trusted_person': None, 'registered_by': 'EMTCT Portal'}
+     
+        }  
+        # 'lmp': str(dict1['lmp']),
         # print("IP address: ",dict1['server_url'],"     API KEY ", dict1['apikey'])
         print("")
         print("")
         print("")
-        print(dict1)
+        # print(dict1)
         print("......................")
         print("......................")
         print("......................")
@@ -459,47 +489,49 @@ class MotherRegistration(FormView):
             submitteddata.save()
             messages.success(
                 self.request, 'Mother has been successfully registered')
-        except HTTPError as e:
-            print("HTTPError ..................", str(e))
-            messages.error(
-                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+        # except HTTPError as e:
+        #     print("HTTPError ..................", str(e))
+        #     messages.error(
+        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
 
-        except TembaHttpError as e:
-            print("TembaHTTPError ..................", str(e))
-            messages.error(
-                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-        except TembaConnectionError as e:
-            print("Temab Connection Error....................... ",
-                  str(e), " ..................")
-            messages.error(
-                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+        # except TembaHttpError as e:
+        #     print("TembaHTTPError ..................", str(e))
+        #     messages.error(
+        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+        # except TembaConnectionError as e:
+        #     print("Temab Connection Error....................... ",
+        #           str(e), " ..................")
+        #     messages.error(
+        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
 
-        except ConnectionResetError as e:
-            print("Connect Reset Error....................... ",
-                  str(e), " ..................")
-            messages.error(
-                self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
+        # except ConnectionResetError as e:
+        #     print("Connect Reset Error....................... ",
+        #           str(e), " ..................")
+        #     messages.error(
+        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
 
-        except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
+        # except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
 
-            if "URN belongs to another contact" in str(ex):
-                # messages.error(self.request, 'The contact ' +
-                #    contact_params['urns'][0] + ' already added')
-                dest_contact = destination_client.get_contacts(
-                    urn=contact_params['urns'][0]).first()
-                # print(dest_contact.uuid)
-                destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params['language'], urns=contact_params[
-                    'urns'], fields=contact_params['fields'], groups=contact_params['groups'])
-                messages.success(
-                    self.request, 'Mother has been successfully Updated')
-                print("Temba Bad Error....................... ",
-                      str(ex), " ..................")
-                # print("The contact  ", contact.urns, " will be reviewed later")
-                print("The contact  ",
-                      contact_params['urns'][0], " is already added now Updated")
-        except:
+        #     if "URN belongs to another contact" in str(ex):
+        #         # messages.error(self.request, 'The contact ' +
+        #         #    contact_params['urns'][0] + ' already added')
+        #         dest_contact = destination_client.get_contacts(
+        #             urn=contact_params['urns'][0]).first()
+        #         # print(dest_contact.uuid)
+        #         destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params['language'], urns=contact_params[
+        #             'urns'], fields=contact_params['fields'], groups=contact_params['groups'])
+        #         messages.success(
+        #             self.request, 'Mother has been successfully Updated')
+        #         print("Temba Bad Error....................... ",
+        #               str(ex), " ..................")
+        #         # print("The contact  ", contact.urns, " will be reviewed later")
+        #         print("The contact  ",
+        #               contact_params['urns'][0], " is already added now Updated")
+        except Exception as e:
             print(
                 "Mother failed to register Contact IT administrator or Click back to Try again")
+            print(str(e))
+        print("*************** THE END ******************************")
 
         return HttpResponseRedirect(reverse_lazy('mother_registration'))
 
