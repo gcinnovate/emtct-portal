@@ -11,7 +11,18 @@
     <div class="container">
     <div class="row">
         <div class="col-sm-1"></div>
-            <div class="col-sm-10"><h4 class="theme-color">FamilyConnect Contact Bulk Upload</h4>
+            <div class="col-sm-10"><h3 class="theme-color">FamilyConnect Contact Bulk Upload</h3>
+              <button><a href="{% static '/emtct-bulk-template.xlsx' %}">Click Here to Download Template</a></button>
+              <br/><br/>
+              <h5>Sample Template Look</h5>
+              <img src="{% static 'img/templateimg.png' %}" alt="">
+              <br/><br/>
+              <h5>Supported Languages:</h5>
+              <b> English, Lusoga, Acholi, Luganda, Karamajongo, Runyoro, Runyakitara, 
+                Kumam, Lango, Lingala, Lugbara, Aringa, Madi, Runyankole, Ateso, and Rukiga</b><br/><br/>
+              <p>Messages to Receive should be <b>appointments</b> for "Appointments Messages Only" or <b>health</b> for "Health and Appointments Reminders"</p>
+              <h5>Telephone Format:</h5> 
+              <b>256XXXXXXXXX</b>
               <!-- {% if messages %}
               {% for message in messages %}
                 {% if message.tags == 'success' %}

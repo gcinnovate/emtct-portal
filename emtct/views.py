@@ -196,24 +196,7 @@ class BulkUpload(LoginRequiredMixin, FormView):
         dict1 = form.cleaned_data
 
         invalid_output = self.request.POST.dict()
-
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
-
         print("Invalid flow")
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
-        print(dict1)
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
-        print("Invalid flow")
-        print(invalid_output)
-        print("<==========================================>")
-        print("<==========================================>")
-        print("<==========================================>")
         print(form.errors)
         return HttpResponseRedirect(reverse_lazy('bulk_upload'))
 
@@ -222,34 +205,17 @@ class BulkUpload(LoginRequiredMixin, FormView):
         content = dict1['document']
         import subprocess
         subprocess.run(["clear"])
-        print(type(content))
-        # print(str(content.file.tell()))
-
-        # print(content.get_array())
         count = 0
-        # for item in content.get_array():
-        #     count += 1
-        #     print(count, " ", item)
-        #     break
-        # print(dir(pyexcel))
-        # sheet = pyexcel.get_sheet(file_type="xlsx", file_content=content)
         sheet = pyexcel.Sheet()
-        # print(dir(sheet))
         sheet.xlsx = content
-        # sheet.csv = content
-        # print(len(sheet.array))
         l = 0
         data_entries = []
-
-        # Open the file in append mode
-
-        # filename = 'failedtemplate.xlsx'
-        # filepath = os.path.join(settings.STATICFILES_DIRS[0], filename)
-        # book = pyexcel.get_book(filepath=filepath)
-        # sheet = book["Sheet1"]
+        languages = {"English": "eng", "Lusoga": "xog", "Acholi": "ach", "Luganda": "lug", "Karamajongo": "kdj", "Runyoro": "run", 
+                     "Runyakitara": "rar", "Kumam": "kdi", "Lango": "lao", "Lingala": "lin", "Lugbara": "lgg", "Aringa": "lua", 
+                     "Madi": "grg",  "Runyankole": "nyn", "Ateso":"teo",
+                     "Rukiga": "cyn"}
 
         for row in sheet.array:
-            count += 1
             print(count, " ", row)
             if l == 0:
                 print(l, row)
@@ -260,107 +226,83 @@ class BulkUpload(LoginRequiredMixin, FormView):
                 print(l, row)
                 print(l, 'Start Adding item...........................................')
                 l = l+1
+                groups = ['All FC-EMTCT']
+                emtctpreg_date = None
+                emtctbirth_date = None
+
+                if row[2]:
+                    emtctpreg_date = datetime.datetime.now() - datetime.timedelta(weeks=int(row[2])) #emtct preg date  
+                    
+                    if (emtctpreg_date + datetime.timedelta(days=270)) > datetime.datetime.now():
+                        groups.append('ART Pregnant Mothers')
+                    emtctpreg_date = emtctpreg_date.strftime('%d-%m-%Y')
+                    
+
+                if  row[1]:
+                    emtctbirth_date = datetime.datetime.now() - datetime.timedelta(weeks=int( row[1]) * 4) #emtct baby birth date
+                    
+                    if (emtctbirth_date + datetime.timedelta(days=2*365)) > datetime.datetime.now():
+                        groups.append('ART Lactating Mothers')
+                    emtctbirth_date = emtctbirth_date.strftime('%d-%m-%Y')
+
+                if row[3] == "AppointmentReminder":
+                    groups.append('ART Appointment Reminders')
+                
+                if row[3] == "HealthMessages":
+                    groups.append('ART Health Messages')
+             
+
                 contact_params = {
-                    'name': row[1],
-                    'language': None,
-                    'urns': ['tel:+' + str(row[0])],
-                    'groups': ['Active Receivers', 'All FC-EMTCT'],
-                    'fields': {'sex': row[2],  'village': row[7], 'nin': row[3], 'sub_county': row[5], 'district': row[4], 'parish': row[6], 'registered_by': 'EMTCT Bulk Upload'}
+                    'name': row[0],
+                    'language': languages.get(row[6],"eng"),
+                    'urns': ['tel:+' + str(row[4])],
+                    'groups': groups,
+                    'fields': {'pregnancy_age_at_enrollment': row[2] if row[2] else None ,'baby_age_at_enrollment': row[1] if row[1] else None ,'fc_emtct_pregnancy_date': emtctpreg_date ,'fc_emtct_baby_date': emtctbirth_date,'sex': 'F', 'trusted_person': row[5], 'art_number': row[7], 'district': row[8], 'sub_county': row[9], 'health_facility': row[10],  'registered_by': 'EMTCT Bulk Upload'}
                 }
                 print(contact_params)
-
-            # # import logging
-
-            # # import sys
             try:
 
                 resp = destination_client.create_contact(name=contact_params['name'], language=contact_params['language'], urns=contact_params[
                     'urns'], fields=contact_params['fields'], groups=contact_params['groups'])  # .iterfetches(retry_on_rate_exceed=True)
+                count += 1
                 print(resp.uuid, " Sucesss........................................")
                 submitteddata = SubmittedData.objects.create(
                     uuid=resp.uuid, contact_unit=contact_params)
                 submitteddata.save()
-                messages.success(
-                    self.request, 'Mother has been successfully registered')
-
-            except HTTPError as e:
-                print("HTTPError ..................", str(e))
-                messages.error(
-                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-
-            except TembaHttpError as e:
-                print("TembaHTTPError ..................", str(e))
-                messages.error(
-                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-            except TembaConnectionError as e:
-                print("Temab Connection Error....................... ",
-                      str(e), " ..................")
-                messages.error(
-                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-
-            except ConnectionResetError as e:
-                print("Connect Reset Error....................... ",
-                      str(e), " ..................")
-                messages.error(
-                    self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-
+    
             except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
 
                 if "URN belongs to another contact" in str(ex):
-                    # messages.error(self.request, 'The contact ' +
-                    #    contact_params['urns'][0] + ' already added')
+                    
                     dest_contact = destination_client.get_contacts(
                         urn=contact_params['urns'][0]).first()
-                    # print(dest_contact.uuid)
-                    destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params[
-                                                      'language'], urns=contact_params['urns'], fields=contact_params['fields'], groups=contact_params['groups'])
-                    # datarow = [row[0], row[1], row[2], row[3],
-                    #            row[4], row[5], row[6], row[7], 'failed']
-                    # print(datarow)
-                    # data_entries.append(datarow)
-                    # messages.success(
-                    # self.request, 'Mother has been successfully Updated')
-                    print("Temba Bad Error....................... ",
-                          str(ex), " ..................")
-                    # print("The contact  ", contact.urns, " will be reviewed later")
+                    destination_client.update_contact(
+                        dest_contact.uuid, name=contact_params['name'], 
+                        language=contact_params['language'], urns=contact_params['urns'], 
+                        fields=contact_params['fields'], groups=contact_params['groups'])
                     print("The contact  ",
-                          contact_params['urns'][0], " is already added")
-            except:
+                      contact_params['urns'][0], " is already added now Updated")
+                    count += 1
+       
+            except Exception as e:
                 print(
                     "Mother failed to register Contact IT administrator or Click back to Try again")
+                print(str(e))
                 datarow = [row[0], row[1], row[2], row[3],
                            row[4], row[5], row[6], row[7], 'failed']
                 data_entries.append(datarow)
+            print("****************************** THE END*************************************")
 
-            # if count == 6:  # Only 3 for testing purposes
-            #     break
-        # Add data to sheet
-        # sheet.extend_rows(data)
-        # book.save_as(filepath)
+         
         messages.success(self.request,
                          'Number of Mothers Registered <b>'+str(count)+'</b>')
 
         # Add to error file
         if data_entries:
 
-            # ===========================
-            # user = self.request.user
-            # dir_for_user = use
-            # ===========================
             filename = 'errors.txt'
-
             base_dir = Path(settings.STATIC_ROOT)
-            # path_dir = base_dir.joinpath(str(dir_for_user))
-            # path_dir.mkdir(parents=True, exist_ok=True)
-            # file_path = path_dir.joinpath(filename)
-            file_path = base_dir.joinpath(filename)  # needed line testing
-            # subdirectory_path.mkdir(parents=True, exist_ok=True)
-            # time_now = time.strftime("%Y%m%d-%H%M%S")
-
-            # filename = 'errors-' + time_now + '.txt'
-
-            # file_url = reverse(file_path)
-
+            file_path = base_dir.joinpath(filename) 
             with open(file_path, 'w') as f:
                 number_line = 0
                 for i, item in enumerate(data_entries):
@@ -369,18 +311,10 @@ class BulkUpload(LoginRequiredMixin, FormView):
             messages.error(self.request,
                            f'Click', extra_tags='safe')
 
-        # # print(type(sheet.xlsx))
-        # valid_output = self.request.POST.dict()
-        # print(valid_output)
-
-        print("<==========================================>")
-        print("<==========================================>")
-        # print(type(sheet))
-        # print(dir(content))
         print("<==========================================>")
 
         print("Valid......................................")
-        # print(dict1)
+        
 
         return HttpResponseRedirect(reverse_lazy('bulk_upload'))
 
@@ -388,20 +322,12 @@ class BulkUpload(LoginRequiredMixin, FormView):
 class MotherRegistration(FormView):
     template_name = 'emtct/mother_registration.html'
     form_class = MotherForm
-    # success_message = "Mother has been registered"
-
     def get_initial(self):
-        # call super if needed
         return {'sex': 'F'}
-    # success_url = '/thanks/'
-    # success_url = reverse_lazy('mother_registration')
+    
 
     def form_valid(self, form):
         dict1 = form.cleaned_data
-        # print(dict1)
-
-        # provide api key
-        # provide server url
         district = dict1['district']
         subcounty = dict1['subcounty']
         facility = dict1['facility']
@@ -417,9 +343,6 @@ class MotherRegistration(FormView):
             facility = FcappOrgunits.objects.filter(
                 id=int(dict1['facility'])).values('name').first()
             facility = facility['name']
-
-        # print(district," == ", subcounty," === ", facility )
-        # print("<------------------------------------------------>")
         groups = ['All FC-EMTCT']
         emtctpreg_date = None
         emtctbirth_date = None
@@ -427,16 +350,16 @@ class MotherRegistration(FormView):
         if dict1['number_of_weeks']:
             emtctpreg_date = datetime.datetime.now() - datetime.timedelta(weeks=int(dict1['number_of_weeks'])) #emtct preg date  
             
-            if (emtctpreg_date + datetime.timedelta(days=270)) < datetime.datetime.now():
+            if (emtctpreg_date + datetime.timedelta(days=270)) > datetime.datetime.now():
                 groups.append('ART Pregnant Mothers')
-            emtctpreg_date = str(emtctpreg_date)
+            emtctpreg_date = emtctpreg_date.strftime('%d-%m-%Y')
 
         if  dict1['age_of_baby']:
-            emtctbirth_date = datetime.datetime.now() - datetime.timedelta(months=int( dict1['age_of_baby'])) #emtct baby birth date
+            emtctbirth_date = datetime.datetime.now() - datetime.timedelta(months=int( dict1['age_of_baby']) * 4) #emtct baby birth date
             emtctbirth_date = str(emtctbirth_date)
-            if (emtctbirth_date + datetime.timedelta(years=2)) < datetime.datetime.now():
+            if (emtctbirth_date + datetime.timedelta(days=2 * 365)) > datetime.datetime.now():
                 groups.append('ART Lactating Mothers')
-            emtctbirth_date = str(emtctbirth_date)
+            emtctbirth_date = emtctbirth_date.strftime('%d-%m-%Y')
 
         if dict1['message_to_receive'] == "AppointmentReminder":
             groups.append('ART Appointment Reminders')
@@ -456,29 +379,8 @@ class MotherRegistration(FormView):
             'fields': { 'fc_emtct_pregnancy_date': emtctpreg_date ,'fc_emtct_baby_date': emtctbirth_date ,'sex': dict1['sex'], 'baby_age_at_enrollment': dict1['age_of_baby'] if dict1['age_of_baby'] else None ,'pregnancy_age_at_enrollment': dict1['number_of_weeks'] if dict1['number_of_weeks'] else None ,'art_number': dict1['art_number'],  'sub_county': subcounty, 'district': district, 'health_facility': facility, 'messages_to_receive': None, 'trusted_person': None, 'registered_by': 'EMTCT Portal'}
      
         }  
-        # 'lmp': str(dict1['lmp']),
-        # print("IP address: ",dict1['server_url'],"     API KEY ", dict1['apikey'])
-        print("")
-        print("")
-        print("")
-        # print(dict1)
-        print("......................")
-        print("......................")
-        print("......................")
         print(contact_params)
-        print("......................")
-        print("......................")
-        # print("......................Storing in DB........................................")
-        # submitteddata = SubmittedData.objects.create(contact_unit=contact_params)
-        # submitteddata.save()
-        # print("......................")
-        # print("......................")
-        # print("......................Saved in DB.............................")
         print("========================== API Mother Registration ==============================")
-
-        # import logging
-
-        # import sys
         try:
 
             resp = destination_client.create_contact(name=contact_params['name'], language=contact_params['language'], urns=contact_params[
@@ -488,45 +390,7 @@ class MotherRegistration(FormView):
                 uuid=resp.uuid, contact_unit=contact_params)
             submitteddata.save()
             messages.success(
-                self.request, 'Mother has been successfully registered')
-        # except HTTPError as e:
-        #     print("HTTPError ..................", str(e))
-        #     messages.error(
-        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-
-        # except TembaHttpError as e:
-        #     print("TembaHTTPError ..................", str(e))
-        #     messages.error(
-        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-        # except TembaConnectionError as e:
-        #     print("Temab Connection Error....................... ",
-        #           str(e), " ..................")
-        #     messages.error(
-        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-
-        # except ConnectionResetError as e:
-        #     print("Connect Reset Error....................... ",
-        #           str(e), " ..................")
-        #     messages.error(
-        #         self.request, 'Mother failed to register Contact IT administrator or Click back to Try again')
-
-        # except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
-
-        #     if "URN belongs to another contact" in str(ex):
-        #         # messages.error(self.request, 'The contact ' +
-        #         #    contact_params['urns'][0] + ' already added')
-        #         dest_contact = destination_client.get_contacts(
-        #             urn=contact_params['urns'][0]).first()
-        #         # print(dest_contact.uuid)
-        #         destination_client.update_contact(dest_contact.uuid, name=contact_params['name'], language=contact_params['language'], urns=contact_params[
-        #             'urns'], fields=contact_params['fields'], groups=contact_params['groups'])
-        #         messages.success(
-        #             self.request, 'Mother has been successfully Updated')
-        #         print("Temba Bad Error....................... ",
-        #               str(ex), " ..................")
-        #         # print("The contact  ", contact.urns, " will be reviewed later")
-        #         print("The contact  ",
-        #               contact_params['urns'][0], " is already added now Updated")
+                self.request, 'Mother has been successfully registered') 
         except Exception as e:
             print(
                 "Mother failed to register Contact IT administrator or Click back to Try again")
@@ -535,43 +399,13 @@ class MotherRegistration(FormView):
 
         return HttpResponseRedirect(reverse_lazy('mother_registration'))
 
-    # def form_invalid(self, form):
-    #     invalid_output = self.request.POST.dict()
-    #     dict1 = form.cleaned_data
-
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-
-    #     print("Invalid flow")
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-    #     print(dict1)
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-    #     print("Invalid flow")
-    #     print(invalid_output)
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-    #     print("<==========================================>")
-    #     print(form.errors)
-    #     return HttpResponseRedirect(reverse_lazy('mother_registration'))
-
 
 @login_required
-def region_list(request):  # Function included here for testing purposes - Not required
-    # region = FcappOrgunits.objects.filter(hierarchylevel = level['region']).values('id','name')
+def region_list(request): 
     region = FcappOrgunits.objects.filter(
         hierarchylevel=2).values('id', 'name')
 
     return JsonResponse({'data': [{'id': p['id'], 'name': p['name']} for p in region]})
-
-    # region = FcappOrgunits.objects.raw(f'''
-    #      select id, name from fcapp_orgunits where hierarchylevel = {level['region']}
-    #  ''')
-    # return JsonResponse({'data': [{ 'id' : p.id, 'name': p.name} for p in region]})
 
 
 @login_required
