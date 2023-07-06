@@ -201,6 +201,8 @@ class BulkUpload(LoginRequiredMixin, FormView):
         return HttpResponseRedirect(reverse_lazy('bulk_upload'))
 
     def form_valid(self, form):
+        logged_in_user = self.request.user
+        user_name = logged_in_user.get_username()
         dict1 = form.cleaned_data
         content = dict1['document']
         import subprocess
@@ -270,26 +272,26 @@ class BulkUpload(LoginRequiredMixin, FormView):
                     uuid=resp.uuid, contact_unit=contact_params)
                 submitteddata.save()
     
-            except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
+            # except (TembaBadRequestError, TembaNoSuchObjectError, TembaException) as ex:
 
-                if "URN belongs to another contact" in str(ex):
+            #     if "URN belongs to another contact" in str(ex):
                     
-                    dest_contact = destination_client.get_contacts(
-                        urn=contact_params['urns'][0]).first()
-                    destination_client.update_contact(
-                        dest_contact.uuid, name=contact_params['name'], 
-                        language=contact_params['language'], urns=contact_params['urns'], 
-                        fields=contact_params['fields'], groups=contact_params['groups'])
-                    print("The contact  ",
-                      contact_params['urns'][0], " is already added now Updated")
-                    count += 1
+            #         dest_contact = destination_client.get_contacts(
+            #             urn=contact_params['urns'][0]).first()
+            #         destination_client.update_contact(
+            #             dest_contact.uuid, name=contact_params['name'], 
+            #             language=contact_params['language'], urns=contact_params['urns'], 
+            #             fields=contact_params['fields'], groups=contact_params['groups'])
+            #         print("The contact  ",
+            #           contact_params['urns'][0], " is already added now Updated")
+            #         count += 1
        
             except Exception as e:
                 print(
                     "Mother failed to register Contact IT administrator or Click back to Try again")
                 print(str(e))
                 datarow = [row[0], row[1], row[2], row[3],
-                           row[4], row[5], row[6], row[7], 'failed']
+                           row[4], row[5], row[6], row[7], row[8], row[9], row[10], 'failed']
                 data_entries.append(datarow)
             print("****************************** THE END*************************************")
 
@@ -299,24 +301,42 @@ class BulkUpload(LoginRequiredMixin, FormView):
 
         # Add to error file
         if data_entries:
-
-            filename = 'errors.txt'
+            
+            def add_timestamp_to_filename(filename):
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                base_name, extension = os.path.splitext(filename)
+                new_filename = f"{user_name}_{base_name}_{timestamp}{extension}"
+                return new_filename
+            
+            original_filename = "errors.txt"
+            new_filename = add_timestamp_to_filename(original_filename)
             base_dir = Path(settings.STATIC_ROOT)
-            file_path = base_dir.joinpath(filename) 
-            with open(file_path, 'w') as f:
-                number_line = 0
+            file_path = base_dir.joinpath(new_filename) 
+            # open(file_path, 'w').close()
+            # print("done********************************************************")
+            with open(file_path, 'w') as f:  
                 for i, item in enumerate(data_entries):
                     f.write(f"{i + 1}. {item}\n")
                 f.write('\n')
+                print(data_entries)
+
+            file_link = os.path.basename(file_path)
+
+            
+
             messages.error(self.request,
                            f'Click', extra_tags='safe')
 
         print("<==========================================>")
 
         print("Valid......................................")
+        # url = str(reverse_lazy('emtct/bulk_upload.html'))
+        
+        # Return render with the template and context
+        return render(self.request, 'emtct/bulk_upload.html', {'file_link': file_link})
         
 
-        return HttpResponseRedirect(reverse_lazy('bulk_upload'))
+        # return HttpResponseRedirect(reverse_lazy('bulk_upload'))
 
 
 class MotherRegistration(FormView):
@@ -355,7 +375,7 @@ class MotherRegistration(FormView):
             emtctpreg_date = emtctpreg_date.strftime('%d-%m-%Y')
 
         if  dict1['age_of_baby']:
-            emtctbirth_date = datetime.datetime.now() - datetime.timedelta(months=int( dict1['age_of_baby']) * 4) #emtct baby birth date
+            emtctbirth_date = datetime.datetime.now() - datetime.timedelta(weeks=int( dict1['age_of_baby']) * 4) #emtct baby birth date
             emtctbirth_date = str(emtctbirth_date)
             if (emtctbirth_date + datetime.timedelta(days=2 * 365)) > datetime.datetime.now():
                 groups.append('ART Lactating Mothers')
