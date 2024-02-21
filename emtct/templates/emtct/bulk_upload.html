@@ -11,7 +11,18 @@
     <div class="container">
     <div class="row">
         <div class="col-sm-1"></div>
-            <div class="col-sm-10"><h4 class="theme-color">FamilyConnect Contact Bulk Upload</h4>
+            <div class="col-sm-10"><h3 class="theme-color">FamilyConnect Contact Bulk Upload</h3>
+              <button><a href="{% static '/emtct-bulk-template.xlsx' %}">Click Here to Download Template</a></button>
+              <br/><br/>
+              <h5>Sample Template Look</h5>
+              <img src="{% static 'img/templateimg.png' %}" alt="">
+              <br/><br/>
+              <h5>Supported Languages:</h5>
+              <b> English, Lusoga, Acholi, Luganda, Karamajongo, Runyoro, Runyakitara, 
+                Kumam, Lango, Lingala, Lugbara, Aringa, Madi, Runyankole, Ateso, and Rukiga</b><br/><br/>
+              <p>Messages to Receive should be <b>appointments</b> for "Appointments Messages Only" or <b>health</b> for "Health and Appointments Reminders"</p>
+              <h5>Telephone Format:</h5> 
+              <b>256XXXXXXXXX</b>
               <!-- {% if messages %}
               {% for message in messages %}
                 {% if message.tags == 'success' %}
@@ -20,14 +31,38 @@
                   </div>
                 {% endif %}
                 {% if message.tags == 'error' %}
+                  {% if 'safe' in message.tags %}
+
                 <div class="alert alert-danger" role="alert">
-                      {{message}}
+                      {{message|safe}}
                   </div>
+                  {%endif%}
                 {% endif %}
 
                 
               {% endfor %}
               {% endif %} -->
+             
+                {% for message in messages %}
+                
+                    {% if 'safe' in message.tags %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message|safe }}
+                     
+                        <!-- <a href="{% static '/{{file_link}}' %}">Here to Access the Error File</a> -->
+                        <a href="{% static file_link %}">Here to Access the Error File</a>
+                        
+                       
+                    
+                      </div>
+                    {% else %}
+                      <div class="alert alert-success" role="alert">
+                        {{message|safe}}
+                      </div>
+                    {% endif %}
+                
+                {% endfor %}
+           
                 <form method="post" action ="" enctype="multipart/form-data" novalidate>
                                       
 
@@ -39,114 +74,6 @@
                     <!-- btn-xm -->
 
               </form>
-
-              <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-              <script>
-
-                $(document).ready(function(){
-                  
-                  $("#div_id_number_of_weeks").hide();
-                  console.log("between")
-                  $("#div_id_age_of_baby").hide();
-                  
-                  // // $("#show").click(function(){
-                  // //       $("p").show();
-                  // //     });
-
-                  $('#id_mothers_condition').change(function(){
-                    if ($('#id_mothers_condition').val() === "pregnant"){
-                      $("#div_id_age_of_baby").hide();
-
-                      $("#div_id_number_of_weeks").show();
-                    } else { 
-                      $("#div_id_number_of_weeks").hide();
-
-
-                      $("#div_id_age_of_baby").show();
-                  }
-
-
-                  });
-
-
-
-
-                  // count = 1
-                  $("#id_region").change(function(){
-            
-                    let reg_id = $("#id_region").val();
-                    if (reg_id ==0 || reg_id == "")
-                      return;
-                    let dropdown = $('#id_district');
-                    console.log(reg_id);
-                    dropdown.empty();
-                    // dropdown.append('<option selected="true" disabled>Please Select Region</option>');
-                    dropdown.append('<option selected="true" value="">Please Select District</option>');
-                    dropdown.prop('selectedIndex', 0);
-                    const url = 'districtjson/'+ reg_id;
-                    // Populate dropdown with list of 
-                    $.getJSON(url, function (data) {
-                      $.each(data,function(){
-                        $.each(this, function (key, entry) {
-                            dropdown.append($('<option></option>').attr('value', entry.id).text(entry.name));
-                            // console.log(entry)
-                        })
-                      } );
-                        
-                      });
-                    $("#id_district").change(function(){
-                        let district_id = $("#id_district").val();
-                        if (district_id ==0 || district_id == "")
-                            return;
-                        let subcountylist = $('#id_subcounty');
-                        console.log(district_id);
-                        subcountylist.empty();
-                        // dropdown.append('<option selected="true" disabled>Please Select Region</option>');
-                        // subcountylist.append('<option selected="true" value="">Please Select Subcounty</option>');
-                        // dropdown.prop('selectedIndex', 0);
-                        const suburl = 'subcountyjson/'+ district_id;
-                        // Populate dropdown with list of 
-                        $.getJSON(suburl, function (data) {
-                          $.each(data,function(){
-                            $.each(this, function (key, entry) {
-                                subcountylist.append($('<option></option>').attr('value', entry.id).text(entry.name));
-                                console.log(entry)
-                            })
-                          } );
-                            
-                          });
-                      });
-            
-                      $("#id_subcounty").change(function(){
-                        let subcounty_id = $("#id_subcounty").val();
-                        if (subcounty_id ==0 || subcounty_id == "")
-                            return;
-                        let facilitylist = $('#id_facility');
-                        // console.log(district_id);
-                        // parishlist.empty();
-                        // dropdown.append('<option selected="true" disabled>Please Select Region</option>');
-                        // subcountylist.append('<option selected="true" value="">Please Select Subcounty</option>');
-                        // dropdown.prop('selectedIndex', 0);
-                        const parishurl = 'parishjson/'+ subcounty_id;
-                        // Populate dropdown with list of 
-                        $.getJSON(parishurl, function (data) {
-                          $.each(data,function(){
-                            $.each(this, function (key, entry) {
-                                facilitylist.append($('<option></option>').attr('value', entry.id).text(entry.name));
-                                console.log(entry)
-                            })
-                          } );
-                            
-                          });
-                      });
-            
-                  
-            
-            
-                  });
-
-                });
-              </script> -->
             </div>
         <div class="col-sm-1"></div>
     </div>

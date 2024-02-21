@@ -19,11 +19,21 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 
+from environs import Env
+env = Env()
+env.read_env()
+
 admin.site.site_header = settings.ADMIN_SITE_HEADER
 admin.site.index_title = settings.ADMIN_SITE_INDEX
 
 urlpatterns = [
     path('', include('emtct.urls')),
-    path('fc/emtct/super-admin/', admin.site.urls),
+    path(env.str("SUPERUSER_URL"), admin.site.urls),
 
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] 
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    
